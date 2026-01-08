@@ -382,7 +382,7 @@
 
                         <nav className="flex-1 flex items-center gap-3">
 
-                            {['home', 'dashboard', 'billing', 'inventory', 'invoices', 'staff','product'].map(id => (
+                            {['home', 'dashboard', 'billing', 'inventory', 'categories', 'invoices', 'staff','product'].map(id => (
 
                                 <button key={id} onClick={() => { setTab(id); setBuilderView('main'); }} className={`px-6 py-2.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${tab === id ? 'active-tab' : 'hover:bg-white/10 text-white/60'}`}>
 
