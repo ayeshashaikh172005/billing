@@ -14,6 +14,9 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
 # --- OAUTH SETUP ---
 oauth = OAuth(app)
 google = oauth.register(
@@ -255,3 +258,4 @@ if __name__ == '__main__':
     if not os.path.exists('templates'): os.makedirs('templates')
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     app.run(debug=True, port=5000)
+
