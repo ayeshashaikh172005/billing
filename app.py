@@ -254,4 +254,5 @@ def logout():
 if __name__ == '__main__':
     if not os.path.exists('templates'): os.makedirs('templates')
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
     app.run(debug=True, port=5000)
