@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Invoice Builder - Clean View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f7;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Desktop Modal Style */
+        .desktop-modal {
+            transition: all 0.2s ease-out;
+            opacity: 0;
+            transform: translate(-50%, -45%) scale(0.95);
+            pointer-events: none;
+        }
+
+        .desktop-modal.open {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        input:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-[#F3F4F7]">
+
+    <div id="app" class="min-h-screen flex flex-col relative overflow-hidden">
+        
+        <!-- Header -->
+        <header class="p-4 bg-white border-b flex justify-between items-center px-8 z-30 sticky top-0 shadow-sm">
+            <div class="flex items-center gap-6">
+                <div class="bg-[#3b82f6] p-2 rounded-lg">
+                    <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider leading-none mb-1">Invoice #</p>
+                    <div class="flex items-center gap-3">
+                        <h1 id="header-inv-id" class="text-xl font-bold text-gray-800 leading-none">INV-1</h1>
+                        <p id="header-date" class="text-sm text-gray-500 leading-none">01-01-2026</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleEditModal(true)" class="text-[#3b82f6] font-semibold text-sm px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">Edit</button>
+                <button class="bg-[#3b82f6] text-white font-bold text-sm px-6 py-2 rounded-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95">Download PDF</button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT (Full Width Column) -->
+        <main id="main-view" class="flex-1 flex justify-center w-full p-8">
+            
+            <!-- CENTRAL EDITING AREA -->
+            <div class="w-full flex flex-col gap-4 overflow-y-auto custom-scroll">
+                
+                <!-- Export Checkbox -->
+                <div class="p-6 flex items-center gap-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <input type="checkbox" id="export-sez" class="w-6 h-6 rounded border-gray-300 text-[#3b82f6] focus:ring-0">
+                    <label for="export-sez" class="text-base font-semibold text-gray-700">Export Invoice/SEZ</label>
+                </div>
+
+                <!-- Customer Selection -->
+                <div class="bg-white px-6 py-6 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Customer</span>
+                        <i data-lucide="info" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <button onclick="navigate('select-customer')" class="w-full border-2 border-dashed border-gray-200 rounded-lg py-16 flex items-center justify-center gap-3 text-[#3b82f6] font-bold text-lg hover:bg-blue-50 transition-colors">
+                        <i data-lucide="circle-plus" class="w-6 h-6"></i>
+                        Select Customer
+                    </button>
+                </div>
+
+                <!-- Products Selection -->
+                <div class="bg-white px-6 py-6 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Products</span>
+                        <i data-lucide="info" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <button onclick="navigate('select-product')" class="w-full border-2 border-dashed border-gray-200 rounded-lg py-16 flex items-center justify-center gap-3 text-[#3b82f6] font-bold text-lg hover:bg-blue-50 transition-colors">
+                        <i data-lucide="circle-plus" class="w-6 h-6"></i>
+                        Select Products
+                    </button>
+                </div>
+
+                <!-- Custom Fields Banner -->
+                <div class="p-6 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-blue-900 font-black text-lg">Add Custom Fields</h3>
+                        <p class="text-blue-700 text-sm font-medium">Personalize every detail to perfectly suit your professional style.</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-full shadow-md">
+                        <i data-lucide="headphones" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                </div>
+
+                <!-- Optional Sections -->
+                <div class="pt-6 pb-2 flex justify-between items-center">
+                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Optional Sections</span>
+                    <button class="text-xs font-black text-gray-400 flex items-center gap-2 hover:text-gray-600 transition-colors">
+                        <i data-lucide="circle-plus" class="w-4 h-4"></i> ADDITIONAL CHARGES
+                    </button>
+                </div>
+
+                <div class="bg-white divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden shadow-sm mb-12">
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="truck" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Select Dispatch Address</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="landmark" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <div class="flex-1">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Bank Account</p>
+                            <p class="text-base text-gray-800 font-semibold">Cash</p>
+                        </div>
+                        <button class="text-[#3b82f6] font-black text-sm uppercase tracking-wider">Change</button>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="pen-tool" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Select Signature</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="layers" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Add Reference</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="file-text" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Add Notes</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="book-open" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Add Terms</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="percent" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-base font-medium text-gray-600 flex-1">Add Extra Discount</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors">
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/>
+                            <path d="M15 8H9h1a3 3 0 0 1 0 6H9l3 3m-3-6h6"/>
+                        </svg>
+                        <span class="text-base font-medium text-gray-600 flex-1">Delivery/Shipping Charges</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors">
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/>
+                            <path d="M15 8H9h1a3 3 0 0 1 0 6H9l3 3m-3-6h6"/>
+                        </svg>
+                        <span class="text-base font-medium text-gray-600 flex-1">Packaging</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- CUSTOMER VIEW (Full Screen Overlay) -->
+        <div id="select-customer" class="hidden fixed inset-0 bg-white z-[100] flex flex-col fade-in">
+            <div class="p-8 flex items-center gap-8 border-b max-w-7xl mx-auto w-full">
+                <button onclick="navigate('main-view')" class="p-3 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="arrow-left" class="w-8 h-8"></i></button>
+                <div class="flex-1 bg-gray-100 rounded-2xl flex items-center px-6 py-4 gap-4">
+                    <i data-lucide="search" class="w-6 h-6 text-gray-400"></i>
+                    <input type="text" placeholder="Search Customer" class="bg-transparent text-xl w-full outline-none">
+                </div>
+            </div>
+            <button class="max-w-7xl mx-auto w-full p-8 text-[#3b82f6] font-black text-2xl flex items-center gap-4 border-b hover:bg-blue-50 transition-colors">
+                <i data-lucide="circle-plus" class="w-8 h-8"></i> Add new customer
+            </button>
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center text-gray-400">
+                <i data-lucide="users" class="w-24 h-24 mb-6 opacity-20"></i>
+                <p class="text-2xl font-medium">Search to find a customer</p>
+            </div>
+        </div>
+
+        <!-- PRODUCT VIEW (Full Screen Overlay) -->
+        <div id="select-product" class="hidden fixed inset-0 bg-white z-[100] flex flex-col fade-in">
+            <div class="p-8 flex items-center gap-8 border-b max-w-7xl mx-auto w-full">
+                <button onclick="navigate('main-view')" class="p-3 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="arrow-left" class="w-8 h-8"></i></button>
+                <div class="flex-1 bg-gray-100 rounded-2xl flex items-center px-6 py-4 gap-4">
+                    <i data-lucide="search" class="w-6 h-6 text-gray-400"></i>
+                    <input type="text" placeholder="Search Product" class="bg-transparent text-xl w-full outline-none">
+                </div>
+            </div>
+            <button class="max-w-7xl mx-auto w-full p-8 text-[#3b82f6] font-black text-2xl flex items-center gap-4 border-b hover:bg-blue-50 transition-colors">
+                <i data-lucide="circle-plus" class="w-8 h-8"></i> Add New Product
+            </button>
+            
+            <div class="flex-1 overflow-y-auto max-w-7xl mx-auto w-full p-8">
+                <div class="p-10 border border-gray-100 rounded-3xl bg-gray-50 flex justify-between items-center group hover:border-blue-200 cursor-pointer transition-all">
+                    <div>
+                        <h4 class="font-black text-gray-800 text-2xl">Sample Product</h4>
+                        <p class="text-xl text-gray-500 font-medium">₹100</p>
+                        <button class="text-base text-[#3b82f6] font-black mt-4 uppercase tracking-wider">Edit Details</button>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-xs text-gray-400 bg-white border px-4 py-1 rounded-full mb-4 uppercase font-black tracking-widest">In Stock</span>
+                        <div class="flex items-center gap-8 bg-white border border-gray-200 rounded-full p-2 shadow-sm">
+                            <button class="w-12 h-12 flex items-center justify-center text-gray-400 hover:bg-gray-50 rounded-full transition-colors"><i data-lucide="minus" class="w-6 h-6"></i></button>
+                            <span class="text-2xl font-black text-gray-700 w-6 text-center">0</span>
+                            <button class="w-12 h-12 flex items-center justify-center bg-[#3b82f6] text-white rounded-full shadow-lg shadow-blue-200 transition-transform active:scale-95"><i data-lucide="plus" class="w-6 h-6"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT DOCUMENT MODAL (CENTERED) -->
+        <div id="modal-overlay" onclick="toggleEditModal(false)" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[150] transition-opacity opacity-0"></div>
+        <div id="edit-modal" class="desktop-modal fixed top-1/2 left-1/2 bg-white rounded-[2.5rem] z-[160] p-12 w-[600px] shadow-2xl">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-black text-gray-800 tracking-tight">Edit Document Meta</h2>
+                <button onclick="toggleEditModal(false)" class="p-2 hover:bg-gray-100 rounded-full transition-colors"><i data-lucide="x" class="w-7 h-7 text-gray-400"></i></button>
+            </div>
+
+            <div class="space-y-10">
+                <div>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Prefix</label>
+                    <div class="flex items-center border-b-2 border-gray-100 focus-within:border-[#3b82f6] transition-colors py-4">
+                        <input type="text" id="input-prefix" value="INV-" class="flex-1 text-2xl font-bold">
+                        <button class="text-[#3b82f6] text-sm font-black uppercase tracking-widest">Change</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Document Number</label>
+                    <div class="border-b-2 border-gray-100 focus-within:border-[#3b82f6] transition-colors py-4">
+                        <input type="number" id="input-num" value="1" class="w-full text-2xl font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-10">
+                    <div>
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Date</label>
+                        <div class="flex items-center border-b-2 border-gray-100 py-4">
+                            <input type="text" value="01-01-2026" class="flex-1 text-xl font-bold" readonly>
+                            <i data-lucide="calendar" class="w-6 h-6 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Due Date</label>
+                        <div class="flex items-center border-b-2 border-gray-100 py-4">
+                            <input type="text" value="01-01-2026" class="flex-1 text-xl font-bold" readonly>
+                            <i data-lucide="calendar" class="w-6 h-6 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="saveInvoiceChanges()" class="w-full bg-[#3b82f6] text-white font-black py-6 rounded-2xl shadow-xl shadow-blue-200 active:scale-[0.98] transition-all hover:bg-blue-700 text-lg">
+                    Apply Settings
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // State Management
+        const state = {
+            view: 'main-view',
+            invoiceId: 'INV-1',
+            prefix: 'INV-',
+            number: 1,
+            isModalOpen: false
+        };
+
+        function navigate(viewId) {
+            const views = ['select-customer', 'select-product'];
+            views.forEach(v => {
+                document.getElementById(v).classList.add('hidden');
+            });
+            
+            if (viewId === 'main-view') {
+                // Return to main layout
+            } else {
+                document.getElementById(viewId).classList.remove('hidden');
+            }
+            state.view = viewId;
+        }
+
+        function toggleEditModal(show) {
+            const modal = document.getElementById('edit-modal');
+            const overlay = document.getElementById('modal-overlay');
+            
+            if (show) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.add('open');
+                    overlay.style.opacity = '1';
+                }, 10);
+            } else {
+                modal.classList.remove('open');
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function saveInvoiceChanges() {
+            const prefix = document.getElementById('input-prefix').value;
+            const num = document.getElementById('input-num').value;
+            
+            state.prefix = prefix;
+            state.number = num;
+            state.invoiceId = `${prefix}${num}`;
+            
+            document.getElementById('header-inv-id').innerText = state.invoiceId;
+            
+            toggleEditModal(false);
+        }
+
+        // Handle Back Button
+        window.onpopstate = function() {
+            if (state.view !== 'main-view') {
+                navigate('main-view');
+            }
+        };
+    </script>
+</body>
+</html>
