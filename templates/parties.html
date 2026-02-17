@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parties Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html {
+            font-size: 19px;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-active {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+        }
+        .bottom-nav-item.active {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media (min-width: 1024px) {
+            .action-sheet {
+                width: 420px;
+                border-radius: 1.25rem;
+                bottom: auto;
+                left: 50%;
+                right: auto;
+                top: 50%;
+                transform: translate(-50%, -44%) scale(0.96);
+                opacity: 0;
+            }
+        .action-sheet {
+            transition: all 0.3s ease-out;
+            transform: translate(-50%, -40%) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+        }    
+
+           .action-sheet.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .customer-modal-overlay {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+        }
+        .customer-modal {
+            max-width: 520px;
+            width: 94%;
+        }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+    <div class="min-h-screen w-full">
+        <div class="bg-white min-h-screen w-full flex flex-col overflow-hidden">
+
+            <header class="bg-white px-4 py-4 lg:px-8 lg:py-6 border-b border-slate-100">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex gap-8 text-lg font-semibold border-b border-gray-100 w-full max-w-xl">
+                        <button id="tab-customers" class="pb-3 cursor-pointer tab-active transition-all" onclick="switchTab('customers')">Customers</button>
+                        <button id="tab-vendors" class="pb-3 cursor-pointer text-gray-400 transition-all" onclick="switchTab('vendors')">Vendors</button>
+                    </div>
+
+                    <div class="flex gap-6 items-center text-slate-600">
+                        <button class="text-lg cursor-pointer" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        <button class="text-lg cursor-pointer" aria-label="More actions" onclick="toggleActionSheet()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="px-4 py-4 lg:px-8 lg:py-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/60 border-b border-slate-100">
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col">
+                    <span class="text-xs text-gray-500 font-medium">You Collect:</span>
+                    <span id="collect-amount" class="text-2xl lg:text-3xl font-bold text-gray-800">INR 0.00</span>
+                </div>
+                <div class="bg-teal-50 p-4 rounded-xl border border-teal-100 flex flex-col">
+                    <span class="text-xs text-gray-500 font-medium">You Pay:</span>
+                    <span id="pay-amount" class="text-2xl lg:text-3xl font-bold text-gray-800">INR 0.00</span>
+                </div>
+            </section>
+
+            <div class="px-4 py-3 lg:px-8 lg:py-4 flex justify-between items-center text-sm font-medium border-b border-gray-100 bg-white">
+                <div class="flex gap-2 text-gray-500 items-center">
+                    <span>Sort</span>
+                    <span class="text-gray-900 font-bold">Default</span>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <button class="flex gap-1 text-gray-600 items-center">
+                        <i class="fa-solid fa-filter text-xs"></i>
+                        <span>Filter</span>
+                    </button>
+                    <button id="desktop-add-btn" onclick="openCustomerModal()" class="hidden lg:inline-flex bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg">New Customer</button>
+                </div>
+            </div>
+
+            <main id="content-area" class="flex-1 overflow-y-auto scroll-hide p-4 lg:p-8 bg-slate-50/40">
+
+                <div id="view-customers" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                            <h2 class="font-semibold text-slate-800">Customer List</h2>
+                            <span id="customer-count" class="text-xs text-slate-400">0 customer</span>
+                        </div>
+
+                        <div id="customer-list" class="p-3 space-y-2"></div>
+                    </div>
+
+                    <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-800 leading-tight text-lg">Export / SEZ / Multi currency</h3>
+                            <p class="text-sm text-gray-500 mt-2">Easily create your export or multi-currency invoices.</p>
+                        </div>
+                        <div class="mt-8 inline-flex items-center justify-center w-11 h-11 rounded-full bg-white text-blue-600 shadow-sm">
+                            <i class="fa-solid fa-headset text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-vendors" class="hidden min-h-[420px] bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-gray-700">Vendor List</h2>
+                        <span id="vendor-count" class="text-xs text-slate-400">0 vendor</span>
+                    </div>
+                    <div id="vendor-list" class="space-y-2"></div>
+                </div>
+
+                <button id="fab-customer" onclick="openCustomerModal()" class="fixed bottom-24 right-4 left-4 lg:hidden bg-blue-600 text-white font-bold py-4 px-6 rounded-full flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-transform">
+                    <i class="fa-solid fa-plus"></i>
+                    NEW CUSTOMER
+                </button>
+            </main>
+        </div>
+    </div>
+
+    <div id="customer-modal-overlay" class="customer-modal-overlay fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="customer-modal bg-white rounded-2xl border border-slate-100 shadow-2xl p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="customer-modal-title" class="text-lg sm:text-xl font-bold text-slate-800">+ Add New Customer</h3>
+                <button onclick="closeCustomerModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <input id="new-customer-name" type="text" placeholder="Customer Name *" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-customer-phone" type="text" placeholder="Phone" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-customer-email" type="email" placeholder="Email" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-customer-company" type="text" placeholder="Company Name" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-customer-gstin" type="text" placeholder="GSTIN" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+            </div>
+
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeCustomerModal()" class="flex-1 h-11 rounded-lg border border-slate-200 font-semibold text-slate-700">Cancel</button>
+                <button id="customer-save-btn" onclick="saveNewCustomer()" class="flex-1 h-11 rounded-lg bg-blue-600 text-white font-semibold">Save Customer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="vendor-modal-overlay" class="customer-modal-overlay fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="customer-modal bg-white rounded-2xl border border-slate-100 shadow-2xl p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="vendor-modal-title" class="text-lg sm:text-xl font-bold text-slate-800">+ Add New Vendor</h3>
+                <button onclick="closeVendorModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <input id="new-vendor-name" type="text" placeholder="Vendor Name *" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-vendor-phone" type="text" placeholder="Phone" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-vendor-email" type="email" placeholder="Email" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-vendor-company" type="text" placeholder="Company Name" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+                <input id="new-vendor-gstin" type="text" placeholder="GSTIN" class="w-full h-11 px-3 rounded-lg border border-slate-200 outline-none focus:border-blue-500">
+            </div>
+
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeVendorModal()" class="flex-1 h-11 rounded-lg border border-slate-200 font-semibold text-slate-700">Cancel</button>
+                <button id="vendor-save-btn" onclick="saveNewVendor()" class="flex-1 h-11 rounded-lg bg-blue-600 text-white font-semibold">Save Vendor</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay fixed inset-0 z-40" onclick="toggleActionSheet()"></div>
+
+    <!-- Action Modal (Replaces Action Sheet for Desktop) -->
+    <div id="actionSheet" class="action-sheet w-[480px] bg-white rounded-3xl z-50 p-8 shadow-2xl border border-gray-100">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold text-gray-800">Quick Actions</h3>
+            <i class="fa-solid fa-xmark text-gray-400 text-xl cursor-pointer hover:text-gray-800" onclick="toggleActionSheet()"></i>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 rounded-2xl bg-gray-50 hover:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-100 transition-all group">
+                <i class="fa-solid fa-address-book text-blue-600 text-2xl mb-3 block"></i>
+                <span class="font-bold text-gray-700 block">Import</span>
+                <span class="text-xs text-gray-400">From contacts or CSV</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 hover:bg-orange-50 cursor-pointer border border-transparent hover:border-orange-100 transition-all group">
+                <i class="fa-solid fa-shuffle text-orange-600 text-2xl mb-3 block"></i>
+                <span class="font-bold text-gray-700 block">Merge</span>
+                <span class="text-xs text-gray-400">Duplicate entries</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 hover:bg-green-50 cursor-pointer border border-transparent hover:border-green-100 transition-all group">
+                <i class="fa-solid fa-file-excel text-green-600 text-2xl mb-3 block"></i>
+                <span class="font-bold text-gray-700 block">Excel</span>
+                <span class="text-xs text-gray-400">Export as .xlsx</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 hover:bg-red-50 cursor-pointer border border-transparent hover:border-red-100 transition-all group">
+                <i class="fa-solid fa-file-pdf text-red-600 text-2xl mb-3 block"></i>
+                <span class="font-bold text-gray-700 block">PDF</span>
+                <span class="text-xs text-gray-400">Download report</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let customerRows = [];
+        let vendorRows = [];
+        let editingCustomerId = null;
+        let editingVendorId = null;
+
+        async function apiJson(url, options = {}) {
+            const res = await fetch(url, {
+                headers: { "Content-Type": "application/json" },
+                ...options
+            });
+            let data = {};
+            try { data = await res.json(); } catch (_) {}
+            if (!res.ok) throw new Error(data.error || "Request failed");
+            return data;
+        }
+
+        function shortName(name) {
+            const s = (name || '').trim();
+            if (!s) return 'NA';
+            const p = s.split(/\s+/).slice(0, 2).map(x => x[0]?.toUpperCase() || '');
+            return p.join('');
+        }
+
+        function renderPartyList(containerId, rows, partyType) {
+            const wrap = document.getElementById(containerId);
+            if (!wrap) return;
+            if (!rows.length) {
+                wrap.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No records found.</div>`;
+                return;
+            }
+            wrap.innerHTML = rows.map(r => `
+                <div class="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                            ${shortName(r.name)}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">${(r.name || '').replaceAll('<', '&lt;')}</p>
+                            <p class="text-xs text-slate-400">${r.phone || r.email || r.company_name || 'No details'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="viewParty('${partyType}', ${r.id})" class="text-xs font-semibold text-gray-600 hover:underline">View</button>
+                        <button onclick="editParty('${partyType}', ${r.id})" class="text-xs font-semibold text-blue-600 hover:underline">Edit</button>
+                        <button onclick="deleteParty('${partyType}', ${r.id})" class="text-xs font-semibold text-red-600 hover:underline">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadPartiesData() {
+            try {
+                const customers = await apiJson('/api/customers?type=customer');
+                const vendors = await apiJson('/api/customers?type=vendor');
+                customerRows = Array.isArray(customers) ? customers : [];
+                vendorRows = Array.isArray(vendors) ? vendors : [];
+                renderPartyList('customer-list', customerRows, 'customer');
+                renderPartyList('vendor-list', vendorRows, 'vendor');
+                document.getElementById('customer-count').innerText = `${customers.length} customer`;
+                document.getElementById('vendor-count').innerText = `${vendors.length} vendor`;
+            } catch (_) {
+                customerRows = [];
+                vendorRows = [];
+                renderPartyList('customer-list', [], 'customer');
+                renderPartyList('vendor-list', [], 'vendor');
+            }
+
+            try {
+                const s = await apiJson('/api/dashboard/summary');
+                document.getElementById('collect-amount').innerText = `INR ${Number(s.net_sales || 0).toFixed(2)}`;
+                document.getElementById('pay-amount').innerText = `INR ${Number((s.total_purchases || 0) + (s.total_expenses || 0)).toFixed(2)}`;
+            } catch (_) {}
+        }
+
+        function openCustomerModal() {
+            clearCustomerForm();
+            const modal = document.getElementById('customer-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('customer-modal-title').innerText = '+ Add New Customer';
+            document.getElementById('customer-save-btn').innerText = 'Save Customer';
+            const nameInput = document.getElementById('new-customer-name');
+            if (nameInput) nameInput.focus();
+        }
+
+        function closeCustomerModal() {
+            const modal = document.getElementById('customer-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function clearCustomerForm() {
+            document.getElementById('new-customer-name').value = '';
+            document.getElementById('new-customer-phone').value = '';
+            document.getElementById('new-customer-email').value = '';
+            document.getElementById('new-customer-company').value = '';
+            document.getElementById('new-customer-gstin').value = '';
+            editingCustomerId = null;
+        }
+
+        function openVendorModal() {
+            clearVendorForm();
+            const modal = document.getElementById('vendor-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('vendor-modal-title').innerText = '+ Add New Vendor';
+            document.getElementById('vendor-save-btn').innerText = 'Save Vendor';
+            const nameInput = document.getElementById('new-vendor-name');
+            if (nameInput) nameInput.focus();
+        }
+
+        function closeVendorModal() {
+            const modal = document.getElementById('vendor-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function clearVendorForm() {
+            document.getElementById('new-vendor-name').value = '';
+            document.getElementById('new-vendor-phone').value = '';
+            document.getElementById('new-vendor-email').value = '';
+            document.getElementById('new-vendor-company').value = '';
+            document.getElementById('new-vendor-gstin').value = '';
+            editingVendorId = null;
+        }
+
+        function getPartyByTypeAndId(partyType, id) {
+            const rows = partyType === 'vendor' ? vendorRows : customerRows;
+            return rows.find((r) => Number(r.id) === Number(id));
+        }
+
+        function viewParty(partyType, id) {
+            const row = getPartyByTypeAndId(partyType, id);
+            if (!row) return;
+            alert(
+                `Name: ${row.name || '-'}\nType: ${row.party_type || partyType}\nPhone: ${row.phone || '-'}\nEmail: ${row.email || '-'}\nCompany: ${row.company_name || '-'}\nGSTIN: ${row.gstin || '-'}\nAddress: ${row.address || '-'}`
+            );
+        }
+
+        function editParty(partyType, id) {
+            const row = getPartyByTypeAndId(partyType, id);
+            if (!row) return;
+
+            if (partyType === 'vendor') {
+                editingVendorId = row.id;
+                document.getElementById('new-vendor-name').value = row.name || '';
+                document.getElementById('new-vendor-phone').value = row.phone || '';
+                document.getElementById('new-vendor-email').value = row.email || '';
+                document.getElementById('new-vendor-company').value = row.company_name || '';
+                document.getElementById('new-vendor-gstin').value = row.gstin || '';
+                document.getElementById('vendor-modal-title').innerText = 'Edit Vendor';
+                document.getElementById('vendor-save-btn').innerText = 'Update Vendor';
+                const modal = document.getElementById('vendor-modal-overlay');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                return;
+            }
+
+            editingCustomerId = row.id;
+            document.getElementById('new-customer-name').value = row.name || '';
+            document.getElementById('new-customer-phone').value = row.phone || '';
+            document.getElementById('new-customer-email').value = row.email || '';
+            document.getElementById('new-customer-company').value = row.company_name || '';
+            document.getElementById('new-customer-gstin').value = row.gstin || '';
+            document.getElementById('customer-modal-title').innerText = 'Edit Customer';
+            document.getElementById('customer-save-btn').innerText = 'Update Customer';
+            const modal = document.getElementById('customer-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        async function deleteParty(partyType, id) {
+            const row = getPartyByTypeAndId(partyType, id);
+            if (!row) return;
+            if (!confirm(`Delete ${partyType} "${row.name}"?`)) return;
+            try {
+                await apiJson(`/api/customers/${row.id}`, { method: 'DELETE' });
+                await loadPartiesData();
+            } catch (err) {
+                alert(err.message || 'Unable to delete');
+            }
+        }
+
+        async function saveNewCustomer() {
+            const name = (document.getElementById('new-customer-name').value || '').trim();
+            const phone = (document.getElementById('new-customer-phone').value || '').trim();
+            const email = (document.getElementById('new-customer-email').value || '').trim();
+            const company_name = (document.getElementById('new-customer-company').value || '').trim();
+            const gstin = (document.getElementById('new-customer-gstin').value || '').trim();
+
+            if (!name) {
+                alert('Customer Name is required');
+                return;
+            }
+
+            try {
+                const url = editingCustomerId ? `/api/customers/${editingCustomerId}` : '/api/customers';
+                const method = editingCustomerId ? 'PUT' : 'POST';
+                await apiJson(url, {
+                    method,
+                    body: JSON.stringify({
+                        name,
+                        phone: phone || null,
+                        email: email || null,
+                        company_name: company_name || null,
+                        gstin: gstin || null,
+                        party_type: 'customer'
+                    })
+                });
+                closeCustomerModal();
+                clearCustomerForm();
+                await loadPartiesData();
+                switchTab('customers');
+            } catch (err) {
+                alert(err.message || 'Unable to save customer');
+            }
+        }
+
+        async function saveNewVendor() {
+            const name = (document.getElementById('new-vendor-name').value || '').trim();
+            const phone = (document.getElementById('new-vendor-phone').value || '').trim();
+            const email = (document.getElementById('new-vendor-email').value || '').trim();
+            const company_name = (document.getElementById('new-vendor-company').value || '').trim();
+            const gstin = (document.getElementById('new-vendor-gstin').value || '').trim();
+
+            if (!name) {
+                alert('Vendor Name is required');
+                return;
+            }
+
+            try {
+                const url = editingVendorId ? `/api/customers/${editingVendorId}` : '/api/customers';
+                const method = editingVendorId ? 'PUT' : 'POST';
+                await apiJson(url, {
+                    method,
+                    body: JSON.stringify({
+                        name,
+                        phone: phone || null,
+                        email: email || null,
+                        company_name: company_name || null,
+                        gstin: gstin || null,
+                        party_type: 'vendor'
+                    })
+                });
+                closeVendorModal();
+                clearVendorForm();
+                await loadPartiesData();
+                switchTab('vendors');
+            } catch (err) {
+                alert(err.message || 'Unable to save vendor');
+            }
+        }
+
+        function setAddButtons(tab) {
+            const fabCustomer = document.getElementById('fab-customer');
+            const desktopAddBtn = document.getElementById('desktop-add-btn');
+            if (!fabCustomer || !desktopAddBtn) return;
+
+            if (tab === 'vendors') {
+                desktopAddBtn.textContent = 'New Vendor';
+                desktopAddBtn.onclick = openVendorModal;
+                fabCustomer.innerHTML = '<i class="fa-solid fa-plus"></i> NEW VENDOR';
+                fabCustomer.onclick = openVendorModal;
+            } else {
+                desktopAddBtn.textContent = 'New Customer';
+                desktopAddBtn.onclick = openCustomerModal;
+                fabCustomer.innerHTML = '<i class="fa-solid fa-plus"></i> NEW CUSTOMER';
+                fabCustomer.onclick = openCustomerModal;
+            }
+            fabCustomer.classList.remove('hidden');
+            desktopAddBtn.classList.remove('hidden');
+        }
+
+        function switchTab(tab) {
+            const customerTab = document.getElementById('tab-customers');
+            const vendorTab = document.getElementById('tab-vendors');
+            const customerView = document.getElementById('view-customers');
+            const vendorView = document.getElementById('view-vendors');
+
+            if (tab === 'customers') {
+                customerTab.classList.add('tab-active');
+                customerTab.classList.remove('text-gray-400');
+                vendorTab.classList.remove('tab-active');
+                vendorTab.classList.add('text-gray-400');
+
+                customerView.classList.remove('hidden');
+                vendorView.classList.add('hidden');
+                setAddButtons('customers');
+            } else {
+                vendorTab.classList.add('tab-active');
+                vendorTab.classList.remove('text-gray-400');
+                customerTab.classList.remove('tab-active');
+                customerTab.classList.add('text-gray-400');
+
+                vendorView.classList.remove('hidden');
+                customerView.classList.add('hidden');
+                setAddButtons('vendors');
+            }
+        }
+
+        function toggleActionSheet() {
+            const sheet = document.getElementById('actionSheet');
+            const overlay = document.getElementById('overlay');
+            sheet.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        document.querySelectorAll('button, .cursor-pointer').forEach(el => {
+            el.addEventListener('touchstart', function() {
+                this.style.opacity = '0.7';
+            });
+            el.addEventListener('touchend', function() {
+                this.style.opacity = '1';
+            });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            setAddButtons('customers');
+            loadPartiesData();
+        });
+    </script>
+</body>
+</html>
