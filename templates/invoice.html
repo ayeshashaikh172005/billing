@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Invoice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ================= BASE ================= */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f7;
+    -webkit-tap-highlight-color: transparent;
+}
+
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ================= SCROLLBAR ================= */
+.custom-scroll::-webkit-scrollbar { width: 6px; }
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+
+/* ================= INPUTS ================= */
+.input-standard {
+    width: 100%;
+    height: 64px;
+    padding: 0 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1f2937;
+    background: white;
+    transition: all 0.2s ease;
+}
+.input-standard:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59,130,246,.1);
+}
+
+/* ================= FLOATING LABEL FIELDS ================= */
+.border-label-group,
+.notes-field,
+.reference-field,
+.terms-field {
+    position: relative;
+    margin-top: 12px;
+    background: white;
+}
+
+.border-label-group label,
+.notes-field label,
+.reference-field label,
+.terms-field label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: white;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.border-label-group input,
+.border-label-group textarea,
+.notes-field textarea {
+    width: 100%;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1f2937;
+    outline: none;
+}
+
+.notes-field:focus-within,
+.border-label-group input:focus {
+    border-color: #3b82f6;
+}
+/* Floating Label Container */
+.field-container {
+    position: relative;
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Floating Label Style */
+.field-label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: white;
+    padding: 0 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #3b82f6; /* Blue color as per image */
+    z-index: 10;
+}
+
+/* Textarea Style */
+.custom-textarea {
+    width: 100%;
+    border: 2px solid #3b82f6; /* Consistent Blue Border */
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 16px;
+    color: #1f2937;
+    outline: none;
+    background: white;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Save/Submit Button as per Image */
+.btn-blue-full {
+    width: 100%;
+    background: #3b82f6;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 14px;
+    border-radius: 12px;
+    margin-top: 20px;
+    transition: all 0.2s;
+}
+.btn-blue-full:active {
+    transform: scale(0.98);
+    background: #2563eb;
+}
+
+/* ================= MODALS ================= */
+.desktop-modal {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -45%) scale(.95);
+    transition: all .2s ease-out;
+}
+.desktop-modal.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.overlay {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+.overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ================= BOTTOM SHEET ================= */
+.bottom-sheet {
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.bottom-sheet.open {
+    transform: translateY(0);
+}
+
+/* ================= ANIMATIONS ================= */
+.fade-in {
+    animation: fadeIn .25s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= COLLAPSIBLE ================= */
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+}
+.collapsible-content.open {
+    max-height: 500px;
+}
+
+/* ================= ICON ROTATION ================= */
+.rotate-icon {
+    transition: transform .3s ease;
+}
+.rotate-icon.open {
+    transform: rotate(180deg);
+}
+
+/* ================= RADIO BUTTONS ================= */
+.radio-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s ease;
+    flex-shrink: 0;
+}
+
+input[type="radio"]:checked + .radio-circle {
+    border-color: #3b82f6;
+}
+input[type="radio"]:checked + .radio-circle::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: #3b82f6;
+    border-radius: 50%;
+}
+/* Radio Button Custom Styling */
+.radio-dot:checked {
+    background-color: #3b82f6;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+    border-color: #3b82f6;
+    background-size: 100% 100%;
+}
+
+/* ================= TOGGLES ================= */
+.toggle-dot {
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+input:checked ~ .toggle-dot {
+    transform: translateX(2rem);
+}
+input:checked ~ .toggle-bg {
+    background-color: #3b82f6;
+}
+
+/* ================= BUTTONS ================= */
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    font-weight: 700;
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    transition: all .2s;
+}
+.btn-primary:active {
+    transform: scale(.98);
+    background: #2563eb;
+}
+
+/* ================= MISC ================= */
+.custom-shadow {
+    box-shadow: 0 4px 20px -2px rgba(0,0,0,.05);
+}
+.term-btn.active {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+</style>
+</head>
+<body class="bg-[#F3F4F7]">
+
+    <div id="app" class="min-h-screen flex flex-col relative overflow-hidden">
+        
+        <!-- Header -->
+        <header class="bg-white border-b z-30 sticky top-0 shadow-sm flex flex-col">
+            <!-- Row 1: Title, Arrow and Play/Draft Info -->
+            <div class="flex justify-between items-center w-full px-8 py-4">
+                <div class="flex items-center gap-6">
+                    <!-- Changed to Lucide Arrow for reliability -->
+                    <i data-lucide="arrow-left" class="w-7 h-7 cursor-pointer hover:text-blue-600 transition-colors" onclick="window.location.href='dashboard.html'"></i>
+                    <h1 id="create-doc-title" class="text-2xl font-bold text-[#1e293b]">Create Invoice</h1>
+                </div>
+            </div>
+
+            <!-- Separator Line -->
+            <div class="border-t border-gray-500 w-full"></div>
+
+            <!-- Row 2: Invoice Info and Action Buttons -->
+            <div class="flex justify-between items-center w-full px-8 py-4">
+                <div class="flex items-center gap-6">
+                    <div class="bg-[#3b82f6] p-2 rounded-lg">
+                        <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider leading-none mb-1">Invoice #</p>
+                        <div class="flex items-center gap-3">
+                            <h1 id="header-inv-id" class="text-xl font-bold text-gray-800 leading-none">INV-1</h1>
+                            <p id="header-date" class="text-sm text-gray-500 leading-none">01-01-2026</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleEditModal(true)" class="text-[#3b82f6] font-semibold text-sm px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">Edit</button>
+                    <button id="download-pdf-btn" onclick="downloadInvoicePDF()" class="bg-[#3b82f6] text-white font-bold text-sm px-6 py-2 rounded-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95">Download PDF</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT (Full Width Column) -->
+        <main id="main-view" class="flex-1 flex justify-center w-full p-8">
+            
+            <!-- CENTRAL EDITING AREA -->
+            <div class="w-full flex flex-col gap-4 overflow-y-auto custom-scroll">
+                
+                <!-- Export Checkbox -->
+                <div class="p-6 flex items-center gap-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <input type="checkbox" id="export-sez" class="w-6 h-6 rounded border-gray-300 text-[#3b82f6] focus:ring-0">
+                    <label for="export-sez" class="text-base font-semibold text-gray-700">Export Invoice/SEZ</label>
+                </div>
+
+                <!-- Customer Selection -->
+                <div class="bg-white px-6 py-6 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Customer</span>
+                        <i data-lucide="info" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <!-- Selected Customer Box (Initially Hidden) -->
+                    <div id="selected-customer-box" class="hidden flex items-center justify-between bg-blue-50 p-6 rounded-xl border border-blue-100 mb-2">
+                        <div>
+                            <h4 id="display-cust-name" class="font-bold text-gray-900 text-lg"></h4>
+                            <p id="display-cust-details" class="text-sm text-gray-500"></p>
+                        </div>
+                        <button onclick="navigate('select-customer')" class="text-blue-600 font-bold text-sm hover:underline">Change</button>
+                    </div>
+                    
+                    <!-- Initially visible button -->
+                    <button id="empty-customer-btn" onclick="navigate('select-customer')" class="w-full border-2 border-dashed border-gray-200 rounded-lg py-16 flex items-center justify-center gap-3 text-[#3b82f6] font-bold text-lg hover:bg-blue-50 transition-colors">
+                        <i data-lucide="circle-plus" class="w-6 h-6"></i>
+                        Select Customer
+                    </button>
+                </div>
+
+                <!-- Products Selection -->
+                <div class="bg-white px-6 py-6 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-1 mb-4">
+                        <span class="text-sm font-bold text-gray-800 uppercase tracking-widest">Products</span>
+                        <i data-lucide="info" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <button onclick="navigate('select-product')" class="w-full border-2 border-dashed border-gray-200 rounded-lg py-16 flex items-center justify-center gap-3 text-[#3b82f6] font-bold text-lg hover:bg-blue-50 transition-colors">
+                        <i data-lucide="circle-plus" class="w-6 h-6"></i>
+                        Select Products
+                    </button>
+                    <div id="selected-products-box" class="hidden mt-4 p-4 rounded-xl border border-blue-100 bg-blue-50/40">
+                        <div id="selected-products-list" class="space-y-2"></div>
+                        <div class="mt-3 pt-3 border-t border-blue-100 flex items-center justify-between">
+                            <span class="text-sm font-bold text-gray-700">Total</span>
+                            <span id="selected-products-total" class="text-base font-black text-blue-700">INR 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCT VIEW -->
+        <div id="select-product" class="hidden fixed inset-0 bg-white z-[100] flex flex-col fade-in">
+            <div class="p-4 flex items-center gap-4 border-b bg-white sticky top-0 z-20">
+                <button onclick="navigate('main-view')" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+                </button>
+                <div class="flex-1 flex items-center gap-2">
+                    <input type="text" placeholder="Search Products" class="text-xl font-medium w-full outline-none text-gray-600 placeholder-gray-400">
+                </div>
+                <button class="p-2">
+                    <i data-lucide="scan-barcode" class="w-8 h-8 text-gray-800"></i>
+                </button>
+            </div>
+            <button onclick="navigate('add-product')" class="w-full bg-[#E5E7EB] py-3 flex items-center justify-center gap-2 text-gray-600 font-bold text-[14px]">
+                <i data-lucide="circle-plus" class="w-4 h-4"></i> Add New Product
+            </button>
+            <div id="product-picker-list" class="flex-1 overflow-y-auto p-4 bg-[#F8F9FA] space-y-4">
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm relative flex flex-col">
+                    <div class="absolute top-2 right-2 text-[11px] font-bold text-gray-400 px-2 py-0.5 bg-gray-50 rounded">
+                        0.0 OTH
+                    </div>
+                    <div class="p-4 pt-6 flex justify-between items-start">
+                        <div class="space-y-4">
+                            <h4 id="picker-product-name" class="font-bold text-gray-800 text-[18px]">Sample Product</h4>
+                            <p id="picker-product-price" class="text-[18px] font-bold text-gray-900">INR 100</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mt-8">
+                            <button onclick="updateQty(-1)" class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center shadow-sm active:scale-90 transition-transform">
+                                <i data-lucide="minus" class="w-5 h-5"></i>
+                            </button>
+                            <div class="flex flex-col items-center">
+                                <span id="product-qty" class="text-[22px] font-bold text-gray-800 leading-none">0</span>
+                                <div class="w-6 h-[2px] bg-gray-800 mt-1"></div>
+                            </div>
+                            <button onclick="updateQty(1)" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm active:scale-90 transition-transform">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 px-4 py-3 flex justify-between items-center bg-white rounded-b-xl">
+                        <button onclick="toggleProductEdit(true)" class="text-blue-600 font-bold text-[14px] hover:underline">Edit</button>
+                        <span class="text-[12px] font-bold text-gray-400">OTH</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCT EDIT SHEET -->
+        <div id="product-edit-overlay" onclick="toggleProductEdit(false)" class="overlay fixed inset-0 bg-black/40 z-[100]"></div>
+        <div id="product-edit-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2rem] z-[110] shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="w-full flex justify-center pt-3 pb-1">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+
+            <div class="px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                <h2 id="modal-product-title" class="text-xl font-bold text-gray-900">Sample Product</h2>
+                <button onclick="toggleProductEdit(false)"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll pb-6">
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-gray-900 text-lg">Change Price</h3>
+                        <button class="text-blue-600 font-bold text-sm">Edit</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="border-label-group">
+                            <label style="color: #3b82f6;">Unit Price</label>
+                            <input id="modal-unit-price" type="text" value="100.0" style="border-color: #3b82f6;">
+                        </div>
+                        <div class="border-label-group">
+                            <label>Price with Tax</label>
+                            <input id="modal-price-with-tax" type="text" value="100.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Discount -->
+               <div class="space-y-4">
+                    <h3 class="font-bold text-gray-900 text-lg">Discount in</h3>
+                    <div class="flex items-center gap-10">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="discount-type" value="percent" checked class="discount-radio hidden">
+                            <div class="radio-circle"></div>
+                            <span class="font-bold text-gray-700 text-lg">%</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="discount-type" value="amount" class="discount-radio hidden">
+                            <div class="radio-circle"></div>
+                            <span class="font-bold text-gray-700 text-lg">₹</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="border-label-group flex-1">
+                            <label>Percentage</label>
+                            <input id="modal-discount-value" type="text" value="0.0">
+                        </div>
+                        <div class="border-label-group flex-1">
+                            <select id="modal-discount-on" class="w-full border-1.5 border-gray-200 rounded-lg p-3 pt-4 font-bold text-gray-600 outline-none h-[52px]">
+                                <option>Total Amount</option>
+                                <option>Unit Price</option>
+                                <option>Price With Tax</option>
+                                <option>Net Amount</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Quantities -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-900 text-lg">Change Quantities</h3>
+                    <div class="border-label-group relative">
+                        <label>Quantity</label>
+                        <input type="text" value="1.0" id="modal-qty-input">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">OTH</span>
+                    </div>
+                </div>
+
+                <!-- Section: Description -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-gray-900 text-lg">Product Description</h3>
+                    <div class="border-label-group">
+                        <label>Description</label>
+                        <textarea id="modal-description" rows="2">Create your first invoice with ease using our sample product!</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer: Total and Action -->
+            <div class="p-6 border-t bg-white flex items-center justify-between sticky bottom-0">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-gray-400">Total Price</span>
+                    <span id="modal-total-price" class="text-xl font-black text-gray-900">INR 100.00</span>
+                </div>
+                <button onclick="applyProductEdit()" class="bg-[#3b82f6] text-white font-bold px-8 py-4 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all">
+                    Continue <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-bold opacity-0 transition-opacity pointer-events-none z-[200]">
+            Updated Successfully!
+        </div>
+
+        <!-- ADD PRODUCT -->
+        <div id="add-product" class="hidden fixed inset-0 bg-white z-[110] flex flex-col fade-in">
+            <!-- Header -->
+            <header class="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-20">
+                <div class="flex items-center gap-4">
+                    <button onclick="navigate('select-product')" class="hover:bg-gray-100 p-2 rounded-full transition-colors">
+                        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-900">Add Product</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="p-2 border border-gray-100 rounded-lg">
+                        <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 bg-[#f8f9fb] space-y-6 custom-scroll pb-32">
+                <!-- Custom Fields Banner -->
+                <div class="bg-blue-50 rounded-2xl p-5 flex items-center justify-between border border-blue-100">
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-lg">Add Custom Fields</h4>
+                        <p class="text-sm text-gray-500 font-medium">Personalize to perfectly suit your style.</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-full shadow-sm text-blue-600">
+                        <i data-lucide="headphones" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <section class="space-y-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Product Details</h3>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                        <!-- Type Selector -->
+                        <div class="flex items-center gap-8">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="radio" name="prod-type" value="Product" onchange="updateTypePlaceholder(this.value)" checked class="w-5 h-5 radio-dot appearance-none rounded-full border-2 border-gray-300 checked:border-[#3b82f6] transition-all">
+                                <span class="font-bold text-gray-800">Product</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="radio" name="prod-type" value="Service" onchange="updateTypePlaceholder(this.value)" class="w-5 h-5 radio-dot appearance-none rounded-full border-2 border-gray-300 checked:border-[#3b82f6] transition-all">
+                                <span class="font-bold text-gray-800">Service</span>
+                            </label>
+                        </div>
+
+                        <!-- Product Name -->
+                        <div>
+                            <input type="text" id="prod-name-input" placeholder="Product Name" class="w-full h-14 px-5 border rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800 bg-gray-50/50">
+                        </div>
+
+                        <!-- Selling Price -->
+                        <div class="space-y-2">
+                            <input id="prod-selling-price" type="number" placeholder="Selling price" class="w-full h-14 px-5 border rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800 bg-gray-50/50">
+                            <p class="text-xs text-gray-400 font-medium ml-1">Inclusive of taxes</p>
+                        </div>
+
+                        <!-- Tax Rate Dropdown -->
+                        <div class="relative">
+                            <label class="absolute -top-2 left-3 px-1 bg-white text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tax rate %</label>
+                            <select class="w-full h-14 px-5 border rounded-xl outline-none bg-white font-bold text-gray-800 appearance-none">
+                                <option>0</option>
+                                <option>5</option>
+                                <option>12</option>
+                                <option>18</option>
+                                <option>28</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-4 top-4 text-gray-400"></i>
+                        </div>
+
+                        <!-- GST Link -->
+                        <button class="flex items-center gap-2 text-[#3b82f6] font-bold text-sm hover:underline">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            Enter GSTIN to add/change Tax
+                        </button>
+
+                        <!-- Purchase Price -->
+                        <div class="space-y-2">
+                            <input type="number" placeholder="Purchase Price" class="w-full h-14 px-5 border rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800 bg-gray-50/50">
+                            <p class="text-xs text-gray-400 font-medium ml-1">Inclusive of taxes</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Units Section -->
+                <section class="space-y-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Units</h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative">
+                        <select id="prod-unit" class="w-full h-14 px-5 border rounded-xl outline-none bg-white font-medium text-gray-400 appearance-none">
+                            <option>Select Unit</option>
+                            <option>Pcs</option>
+                            <option>Kg</option>
+                            <option>Box</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-10 top-10 text-gray-400"></i>
+                    </div>
+                </section>
+
+                <!-- Optional Fields Collapsible -->
+                <section class="space-y-4">
+                    <div onclick="toggleCollapsible('opt-fields')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer group hover:bg-gray-50 transition-colors">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">Optional Fields</h3>
+                            <p class="text-xs text-gray-400 font-medium mt-1">Description, Barcode, Cess, Category, Product Images</p>
+                        </div>
+                        <div id="opt-fields-icon" class="w-10 h-10 rounded-full bg-gray-100 text-gray-800 flex items-center justify-center rotate-icon">
+                            <i data-lucide="chevron-down" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div id="opt-fields-content" class="collapsible-content">
+                        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-inner grid grid-cols-1 gap-4">
+                            <textarea placeholder="Description" class="w-full p-4 border rounded-xl h-24 outline-none focus:border-blue-500"></textarea>
+                            <input type="text" placeholder="Barcode" class="w-full h-12 px-4 border rounded-xl outline-none">
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Footer Action -->
+            <footer class="p-6 bg-white border-t border-gray-100 fixed bottom-0 left-0 right-0 z-30">
+                <button id="submit-product-btn" onclick="saveProduct()" class="w-full bg-[#3b82f6] text-white font-black py-5 rounded-2xl text-xl shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-[0.98] transition-all">
+                    Add Product
+                </button>
+            </footer>
+        </div>
+
+                <!-- SELECT CUSTOMER -->
+        <div id="select-customer" class="hidden fixed inset-0 bg-white z-[100] flex flex-col fade-in">
+            <div class="p-6 flex items-center gap-4 border-b">
+                <button onclick="navigate('main-view')" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                <div class="flex-1 bg-gray-100 rounded-xl flex items-center px-4 py-3 gap-3">
+                    <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                    <input type="text" placeholder="Search Customer" class="bg-transparent text-lg w-full outline-none">
+                </div>
+            </div>
+
+            <button onclick="selectDefaultCustomer()" class="w-full bg-[#E5E7EB] py-3 flex items-center justify-center gap-2 text-gray-600 font-bold text-[14px]">
+                <i data-lucide="circle-plus" class="w-4 h-4"></i> Default Customer
+            </button>
+
+            <button onclick="navigate('add-customer')" class="w-full p-6 text-[#3b82f6] font-black text-xl flex items-center gap-3 border-b hover:bg-blue-50 transition-colors">
+                <i data-lucide="user-plus" class="w-6 h-6"></i> Add new customer
+            </button>
+            <div id="customer-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F8F9FA]"></div>
+        </div>
+
+        <!-- ADD CUSTOMER -->
+        <div id="add-customer" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div class="bg-white w-[95%] max-w-5xl max-h-[90vh] rounded-3xl shadow-2xl overflow-y-auto custom-scroll fade-in">
+                <!-- Header -->
+                <header class="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+                    <div class="flex items-center gap-4">
+                        <button onclick="navigate('select-customer')" class="hover:bg-gray-100 p-2 rounded-full transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </button>
+                        <h1 class="text-2xl font-bold text-gray-900">Add Customer</h1>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <button class="flex items-center gap-1.5 text-blue-600 font-bold text-sm hover:underline">
+                            Import 
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button class="bg-red-500 rounded-full p-1.5 text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Main Form -->
+                <main class="p-8 space-y-8 flex-grow">
+                    <!-- Custom Fields Promo -->
+                    <div class="bg-blue-50 rounded-xl p-4 flex items-center justify-between border border-blue-100">
+                        <div>
+                            <h4 class="font-bold text-gray-900 text-sm">Add Custom Fields</h4>
+                            <p class="text-xs text-blue-600 font-medium mt-0.5">Personalize to perfectly suit your style.</p>
+                        </div>
+                        <div class="bg-white p-2 rounded-full shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Basic Details Section -->
+                    <section class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-gray-900">Basic Details</h3>
+                            <button class="bg-red-500 rounded-full p-1.5 text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="input-group">
+                                <input type="text" id="cust-name-input" placeholder="Name *" class="w-full h-14 px-4 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800">
+                            </div>
+                            <div class="flex border-2 border-gray-100 rounded-xl overflow-hidden h-14 focus-within:border-blue-500 transition-all">
+                                <div class="flex items-center gap-2 px-3 bg-gray-50 border-r border-gray-100 cursor-pointer">
+                                    <img src="https://flagcdn.com/w20/in.png" alt="India" class="w-5 h-3.5 object-cover rounded-sm">
+                                    <span class="text-sm font-bold text-gray-700">IN+91</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input type="tel" id="cust-phone-input" placeholder="Enter Phone Number" class="flex-grow px-4 outline-none font-medium text-gray-800">
+                            </div>
+                            <div class="input-group">
+                                <input type="email" placeholder="Email" class="w-full h-14 px-4 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Company Details Section -->
+                    <section class="space-y-4">
+                        <h3 class="font-bold text-gray-900">Company Details (Optional)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <div class="relative group">
+                                    <label class="absolute -top-2.5 left-3 px-1.5 bg-white text-[10px] font-bold text-gray-500 group-focus-within:text-blue-600 uppercase tracking-wider">GST Number</label>
+                                    <div class="flex border-2 border-gray-100 rounded-xl overflow-hidden h-14 focus-within:border-blue-500 transition-all">
+                                        <input type="text" id="gst-input" placeholder="22AAAAA0000A1Z5" class="flex-grow px-4 outline-none font-bold text-gray-800 tracking-wider">
+                                        <button onclick="simulateFetch()" id="fetch-btn" class="bg-blue-600 text-white px-6 font-bold text-sm hover:bg-blue-700 active:scale-95 transition-all">Fetch Details</button>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-gray-400 font-medium">Entering the GSTIN will automatically fetch the company details</p>
+                            </div>
+                            <div class="space-y-2">
+                                <input type="text" id="company-name" placeholder="Company Name" class="w-full h-14 px-4 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 transition-all font-medium text-gray-800">
+                                <p class="text-[11px] text-gray-400 font-medium">eg. Tata Motors Private Limited</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Address Sections -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <section class="space-y-4">
+                            <h3 class="font-bold text-gray-900">Billing Address (Optional)</h3>
+                            <button class="w-full flex items-center gap-3 border-2 border-dashed border-gray-100 rounded-2xl p-5 text-gray-400 font-bold bg-white hover:bg-gray-50 transition-colors group">
+                                <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </span>
+                                Billing Address
+                            </button>
+                        </section>
+                        <section class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-gray-900">Shipping Address (Optional)</h3>
+                            </div>
+                            <div class="relative">
+                                <button class="w-full flex items-center gap-3 border-2 border-dashed border-gray-100 rounded-2xl p-5 text-gray-400 font-bold bg-white hover:bg-gray-50 transition-colors group">
+                                    <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </span>
+                                    Shipping Address
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Collapsible Sections-1 -->
+                    <div class="pt-4 space-y-4">
+                        <div class="border-t border-gray-100">
+                            <button onclick="toggleCollapsible('prefs')" class="w-full py-6 flex items-center justify-between group">
+                                <div class="text-left">
+                                    <h4 class="font-bold text-gray-900">Customer Preferences (Optional)</h4>
+                                    <p class="text-xs text-gray-400 font-medium mt-1">Discount, Add price list, Credit Limit, TDS, TCS, Due Date</p>
+                                </div>
+                                <div id="prefs-icon" class="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center rotate-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </button>
+                            <div id="prefs-content" class="collapsible-content">
+                                <div class="pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" placeholder="Default Discount %" class="h-12 border rounded-xl px-4 outline-none focus:border-blue-500">
+                                    <input type="text" placeholder="Credit Limit" class="h-12 border rounded-xl px-4 outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Sections-2 -->
+                    <div class="pt-4 space-y-4">
+                        <div class="border-t border-gray-100">
+                            <button onclick="toggleCollapsible('other')" class="w-full py-6 flex items-center justify-between group">
+                                <div class="text-left">
+                                    <h4 class="font-bold text-gray-900">Other Details (Optional)</h4>
+                                    <p class="text-xs text-gray-400 font-medium mt-1">Add Opening balance, Notes, CC Emails, Tags, Custom Fields</p>
+                                </div>
+                                <div id="other-icon" class="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center rotate-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </button>
+                            <div id="other-content" class="collapsible-content">
+                                <div class="pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" placeholder="Opening Balance %" class="h-12 border rounded-xl px-4 outline-none focus:border-blue-500">
+                                    <input type="text" placeholder="Notes" class="h-12 border rounded-xl px-4 outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Footer Button -->
+                <footer class="p-8 bg-white border-t border-gray-50 sticky bottom-0">
+                    <button onclick="addCustomer()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl text-lg shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-[0.98] transition-all">
+                        Add Customer
+                    </button>
+                </footer>
+            </div>
+        </div>
+
+                <!-- Custom Fields Banner -->
+                <div class="p-6 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-blue-900 font-black text-lg">Add Custom Fields</h3>
+                        <p class="text-blue-700 text-sm font-medium">Personalize every detail to perfectly suit your professional style.</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-full shadow-md">
+                        <i data-lucide="headphones" class="w-6 h-6 text-blue-500"></i>
+                    </div>
+                </div>
+
+                <!-- Optional Sections -->
+                <div class="pt-6 pb-2 flex justify-between items-center">
+                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Optional Sections</span>
+                    <button class="text-xs font-black text-gray-400 flex items-center gap-2 hover:text-gray-600 transition-colors">
+                        <i data-lucide="circle-plus" class="w-4 h-4"></i> ADDITIONAL CHARGES
+                    </button>
+                </div>
+
+                <!-- Optional Sections List -->
+            <div class="bg-white divide-y divide-gray-100 rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                <div onclick="toggleDispatchModal(true)" class="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 cursor-pointer transition-colors group">
+                    <i data-lucide="truck" class="w-6 h-6 text-gray-400 group-hover:text-blue-500"></i>
+                    <div class="flex-1">
+                        <p class="text-base font-semibold text-gray-700">Select Dispatch Address</p>
+                        <p id="selected-dispatch-text" class="text-xs text-gray-400 font-medium">None</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-300"></i>
+                </div>
+            </div>
+        </main>
+
+        <!-- DISPATCH ADDRESS SHEET -->
+        <div id="dispatch-overlay" onclick="toggleDispatchModal(false)" class="overlay hidden fixed inset-0 bg-black/40 z-[100]"></div>
+        
+        <div id="dispatch-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[110] shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="w-full flex justify-center pt-3 pb-1">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+
+            <div class="px-6 pb-4 flex justify-between items-start border-b border-gray-50">
+                <div>
+                    <h2 class="text-[20px] font-bold text-gray-900 leading-tight">Select Dispatch Address</h2>
+                    <p class="text-[13px] text-gray-400 font-medium" id="dispatch-customer-name">Ayesha Shaikh</p>
+                </div>
+                <button onclick="toggleDispatchModal(false)" class="p-1">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-900"></i>
+                </button>
+            </div>
+
+            <!-- List Content -->
+            <div id="dispatch-list" class="p-6 space-y-4 overflow-y-auto custom-scroll">
+                <label class="flex items-center gap-4 p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/30">
+                    <div class="relative">
+                        <input type="radio" name="dispatch-selection" value="None" checked class="address-radio absolute opacity-0 w-full h-full cursor-pointer">
+                        <div class="radio-circle"></div>
+                    </div>
+                    <span class="text-[18px] font-bold text-gray-700">None</span>
+                </label>
+
+                <!-- Add Button -->
+                <button onclick="toggleAddressFormModal(true)" class="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold hover:bg-gray-50 transition-colors">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-gray-400"></i>
+                    Add Dispatch Address
+                </button>
+            </div>
+
+            <!-- Action Button -->
+            <div class="p-6">
+                <button onclick="confirmDispatch()" class="w-full bg-[#3b82f6] text-white font-black py-4 rounded-2xl text-lg shadow-xl shadow-blue-100 active:scale-[0.98] transition-all">
+                    Done
+                </button>
+            </div>
+        </div>
+
+         <!-- ADDRESS FORM MODAL -->
+        <div id="address-form-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div class="bg-white w-[95%] max-w-lg rounded-3xl shadow-2xl overflow-hidden fade-in flex flex-col max-h-[95vh]">
+                <div class="w-full flex justify-center pt-3 pb-1">
+                    <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+                </div>
+
+                <!-- Header -->
+                <div class="p-6 pt-2 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0">
+                     <h2 class="text-[20px] font-bold text-gray-900">Enter Address</h2>
+                     <button onclick="toggleAddressFormModal(false)" class="p-1">
+                        <i data-lucide="x" class="w-6 h-6 text-gray-900"></i>
+                     </button>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-6 space-y-4 overflow-y-auto custom-scroll">
+                    <!-- Title -->
+                    <input id="addr-title" type="text" placeholder="Title" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                    
+                    <!-- Link -->
+                    <button class="text-[#3b82f6] font-bold text-[14px] text-left hover:underline">Autofill Company Name</button>
+                    
+                    <!-- Address Line 1 -->
+                    <input id="addr-line1" type="text" placeholder="Address Line 1 *" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                    
+                    <!-- Address Line 2 -->
+                    <input id="addr-line2" type="text" placeholder="Address Line 2" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                    
+                    <!-- Pincode + Fetch -->
+                    <div class="flex border border-gray-300 rounded-xl overflow-hidden h-14 focus-within:border-blue-500">
+                        <input id="addr-pincode" type="text" placeholder="Pincode" class="flex-1 px-4 outline-none font-medium text-gray-800">
+                        <button class="bg-[#3b82f6] text-white px-6 font-bold text-[14px] hover:bg-blue-700 transition-colors">Fetch Details</button>
+                    </div>
+                    
+                    <!-- City -->
+                    <input id="addr-city" type="text" placeholder="City" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                    
+                    <!-- State -->
+                    <input id="addr-state" type="text" placeholder="State *" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                    
+                    <!-- Notes -->
+                    <input id="addr-notes" type="text" placeholder="Notes" class="w-full h-14 px-4 border border-gray-300 rounded-xl outline-none focus:border-blue-500 font-medium text-gray-800">
+                </div>
+
+                <!-- Footer Action -->
+                <div class="p-6 border-t border-gray-50 bg-white">
+                    <button onclick="saveNewAddress()" class="w-full bg-[#3b82f6] text-white font-black py-4 rounded-2xl text-lg shadow-xl shadow-blue-100 active:scale-[0.98] transition-all">
+                        Save & Update
+                    </button>
+                </div>
+            </div>
+        </div>
+
+                    <!-- Add Bank -->
+                    <div onclick="toggleBankModal(true)" class="px-5 py-4 flex items-center gap-4 hover:bg-gray-50 cursor-pointer">
+                        <i data-lucide="landmark" class="w-6 h-6 text-gray-400"></i>
+                        <div class="flex-1">
+                            <p class="text-[15px] text-gray-500 font-semibold uppercase tracking-widest leading-none mb-1">Bank</p>
+                            <p id="display-bank-name" class="text-lg text-gray-900 font-semibold">Cash</p>
+                        </div>
+                        <button class="text-blue-600 font-bold text-lg uppercase">Change</button>
+                    </div>
+
+                    <!-- Signature -->
+                    <div onclick="toggleSignatureSheet(true)" class="p-4 flex items-center gap-4 hover:bg-gray-50 cursor-pointer">
+                        <i data-lucide="pen-tool" class="w-6 h-6 text-gray-400"></i>
+                        <span id="sig-display-text" class="text-lg font-semibold text-gray-700 flex-1">Select Signature</span>
+                    </div>
+
+                    <!-- References -->
+                <div onclick="toggleBottomSheet('reference', true)" class="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 cursor-pointer">
+                    <i data-lucide="layers" class="w-6 h-6 text-gray-400"></i>
+                    <div class="flex-1">
+                        <p class="text-lg font-semibold text-gray-700">Reference</p>
+                        <p id="reference-preview" class="text-xs text-gray-400 font-medium truncate">No reference added</p>
+                    </div>
+                    <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                </div>
+
+                    <!-- Notes -->
+                    <div onclick="toggleBottomSheet('notes', true)" class="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 cursor-pointer">
+                    <i data-lucide="file-text" class="w-6 h-6 text-gray-400"></i>
+                    <div class="flex-1">
+                        <p class="text-lg font-semibold text-gray-700">Add Notes</p>
+                        <p id="notes-preview" class="text-xs text-gray-400 font-medium truncate">No notes added</p>
+                    </div>
+                    <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                </div>
+
+                    <!-- Terms -->
+                <div onclick="toggleBottomSheet('terms', true)" class="px-6 py-5 flex items-center gap-4 hover:bg-gray-50 cursor-pointer">
+                    <i data-lucide="book-open" class="w-6 h-6 text-gray-400"></i>
+                    <div class="flex-1">
+                        <p class="text-lg font-semibold text-gray-700">Add Terms</p>
+                        <p id="terms-preview" class="text-xs text-gray-400 font-medium truncate">No terms added</p>
+                    </div>
+                    <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                </div>
+                </div>
+
+                    <!-- Add Extra Discount -->
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <i data-lucide="percent" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                        <span class="text-lg font-semibold text-gray-700 flex-1">Add Extra Discount</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+
+                    <!-- Delivery/Shipping Charges -->
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors">
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/>
+                            <path d="M15 8H9h1a3 3 0 0 1 0 6H9l3 3m-3-6h6"/>
+                        </svg>
+                        <span class="text-lg font-semibold text-gray-700 flex-1">Delivery/Shipping Charges</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+
+                    <!-- Packaging -->
+                    <div class="px-6 py-6 flex items-center gap-6 hover:bg-gray-50 cursor-pointer transition-colors group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors">
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0"/>
+                            <path d="M15 8H9h1a3 3 0 0 1 0 6H9l3 3m-3-6h6"/>
+                        </svg>
+                        <span class="text-lg font-semibold text-gray-700 flex-1">Packaging</span>
+                        <i data-lucide="plus" class="w-5 h-5 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TERMS SHEET -->
+        <div id="terms-overlay" onclick="toggleBottomSheet('terms', false)" class="overlay fixed inset-0 z-[150]"></div>
+        <div id="terms-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[160] shadow-2xl flex flex-col max-h-[95vh]">
+            <div class="w-full flex justify-center pt-3 pb-1"><div class="w-12 h-1 bg-gray-300 rounded-full"></div></div>
+            <div class="px-6 pb-3 flex justify-between items-center border-b border-gray-100">
+                <h2 class="text-[20px] font-bold text-gray-900">Terms and Conditions</h2>
+                <button onclick="toggleBottomSheet('terms', false)"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="field-container">
+                    <label class="field-label">Add Terms</label>
+                    <textarea id="terms-input" rows="8" class="custom-textarea">Thanks for doing business with us! We cannot spell success without 'U'
+
+1. All Disputes are Subject to Home Jurisdiction Only.
+2. Any complaint regarding this invoice to be made within 7 days.
+3. Goods once sold will not be taken back.</textarea>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <input type="checkbox" id="terms-save-future" class="w-5 h-5 rounded border-gray-300 text-[#3b82f6]">
+                    <label for="terms-save-future" class="text-base font-semibold text-gray-700">Save for Future</label>
+                </div>
+                <button onclick="submitTerms()" class="btn-blue-full">Save</button>
+            </div>
+        </div>
+
+        <!-- REFERENCE MODAL -->
+        <div id="reference-overlay" onclick="toggleBottomSheet('reference', false)" class="overlay fixed inset-0 z-[150]"></div>
+        <div id="reference-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[160] shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="w-full flex justify-center pt-3 pb-1"><div class="w-12 h-1.5 bg-gray-200 rounded-full"></div></div>
+            <div class="px-6 pb-4 flex justify-between items-center border-b border-gray-50">
+                <h2 class="text-[20px] font-bold text-gray-900">Add Reference</h2>
+                <button onclick="toggleBottomSheet('reference', false)"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="field-container">
+                    <label class="field-label">Reference</label>
+                    <textarea id="reference-input" rows="6" class="custom-textarea" placeholder="Enter reference numbers or text..."></textarea>
+                </div>
+                <button onclick="submitReference()" class="btn-blue-full">Submit</button>
+            </div>
+        </div>
+
+        <!-- NOTES MODAL -->
+        <div id="notes-overlay" onclick="toggleBottomSheet('notes', false)" class="overlay fixed inset-0 z-[150]"></div>
+        <div id="notes-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[160] shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="w-full flex justify-center pt-3 pb-1"><div class="w-12 h-1.5 bg-gray-200 rounded-full"></div></div>
+            <div class="px-6 pb-4 flex justify-between items-center border-b border-gray-50">
+                <h2 class="text-[20px] font-bold text-gray-900">Add Notes</h2>
+                <button onclick="toggleBottomSheet('notes', false)"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="field-container">
+                    <label class="field-label">Notes</label>
+                    <textarea id="notes-input" rows="6" class="custom-textarea" placeholder="Type your notes here..."></textarea>
+                </div>
+                <button onclick="submitNotes()" class="btn-blue-full">Submit</button>
+            </div>
+        </div>
+
+        <!-- SIGNATURE SHEET -->
+         <div id="sig-overlay" onclick="toggleSignatureSheet(false)" class="overlay fixed inset-0 bg-black/40 z-[100]"></div>
+        <div id="sig-sheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[110] shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="w-full flex justify-center pt-3 pb-1">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+            <div class="px-6 pb-4 flex justify-between items-center">
+                <h2 class="text-[20px] font-bold text-gray-900">Select Signature</h2>
+                <button onclick="toggleSignatureSheet(false)" class="p-1"><i data-lucide="x" class="w-6 h-6 text-gray-900"></i></button>
+            </div>
+                <div id="signature-list" class="p-6 pt-0 space-y-4">
+                    <button onclick="navigateToAddSignature()" class="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-blue-200 rounded-2xl text-blue-600 font-bold hover:bg-blue-50/50 transition-colors">
+                        <i data-lucide="plus-circle" class="w-6 h-6"></i>
+                        Add New Signature
+                </button>
+                <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 transition-all">
+                    <div class="relative">
+                        <input type="radio" name="sig-option" value="No Signature" checked onchange="handleSigSelect(this)" class="sig-radio absolute opacity-0">
+                        <div class="radio-circle"></div>
+                    </div>
+                    <span class="text-base font-bold text-gray-700">No Signature</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ADD SIGNATURE VIEW -->
+        <div id="add-signature-view" class="hidden fixed inset-0 bg-white z-[200] flex flex-col fade-in">
+            <header class="p-4 flex items-center gap-4 border-b bg-white">
+                <button onclick="closeAddSignature()"><i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i></button>
+                <h1 class="text-lg font-bold text-gray-800">Add Signature</h1>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 space-y-6 pb-32 custom-scroll">
+                <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-6">
+                    <h3 class="font-bold text-gray-900 text-base">Signature</h3>
+                    
+                    <!-- Upload Placeholder - ADJUSTED SIZE -->
+                    <div class="w-full max-w-sm mx-auto h-64 bg-gray-50 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center gap-4 cursor-pointer group">
+                        <div class="relative">
+                            <i data-lucide="pen-tool" class="w-14 h-14 text-gray-300 group-hover:text-blue-400 transition-colors"></i>
+                        </div>
+                        <span class="text-blue-600 font-bold text-2xl text-center px-4 leading-tight">Upload your Signature</span>
+                        <p class="text-[14px] text-gray-400 italic text-center px-6">You can change image by tapping on image*</p>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div class="space-y-5">
+                        <div class="space-y-2">
+                            <label class="text-2xl font-bold text-gray-700">Signature name <span class="text-red-500">*</span></label>
+                            <input type="text" id="sig-name-input" placeholder="Please Enter Signature Name" class="w-full h-12 border border-gray-200 rounded-lg px-4 font-medium outline-none focus:border-blue-500">
+                        </div>
+
+                         <!-- ENLARGED TOGGLE: DEFAULT -->
+                        <div class="flex items-center justify-between py-1">
+                            <span class="text-xl font-bold text-gray-900">Default</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer">
+                                <div class="w-16 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer toggle-bg transition-colors"></div>
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] font-black text-white peer-checked:opacity-100 opacity-0 transition-opacity pointer-events-none uppercase">Yes</span>
+                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] font-black text-gray-400 peer-checked:opacity-0 opacity-100 transition-opacity pointer-events-none uppercase">No</span>
+                                <div class="absolute left-[4px] top-[4px] bg-white w-6 h-6 rounded-full shadow-md toggle-dot"></div>
+                            </label>
+                        </div>
+
+                        <!-- ENLARGED TOGGLE: WITH STAMP -->
+                        <div class="flex items-center justify-between py-1">
+                            <span class="text-xl font-bold text-gray-900">With Stamp</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer">
+                                <div class="w-16 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer toggle-bg transition-colors"></div>
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] font-black text-white peer-checked:opacity-100 opacity-0 transition-opacity pointer-events-none uppercase">Yes</span>
+                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] font-black text-gray-400 peer-checked:opacity-0 opacity-100 transition-opacity pointer-events-none uppercase">No</span>
+                                <div class="absolute left-[4px] top-[4px] bg-white w-6 h-6 rounded-full shadow-md toggle-dot"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="space-y-3 px-1">
+                    <p class="text-2xl font-bold text-gray-700">*Follows the below steps to generate a digital signature.</p>
+                    <ol class="text-xl text-gray-500 space-y-2 font-medium">
+                        <li>1. Grab a white paper and sign it.</li>
+                        <li>2. Click "Upload signature."</li>
+                        <li>3. Choose "Camera" or "Gallery."</li>
+                        <li>4. Take a well-lit photo of your signature or pick one from the gallery.</li>
+                        <li>5. Crop the image to show only the signature.</li>
+                        <li>6. Check the result. If it's not good, try again until you're happy with it.</li>
+                    </ol>
+                </div>
+            </main>
+
+            <footer class="p-4 bg-white border-t fixed bottom-0 left-0 right-0 z-[210]">
+                <button onclick="saveNewSignature()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl text-lg shadow-lg active:scale-95 transition-transform">
+                    Add Signature
+                </button>
+            </footer>
+        </div>
+
+        <!-- BANK SHEET -->
+        <div id="bank-overlay" onclick="toggleBankModal(false)" class="overlay fixed inset-0 bg-black/40 z-[100]"></div>
+        <div id="bank-modal" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[110] shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="w-full flex justify-center pt-3 pb-1">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+            <div class="px-6 pb-4 flex justify-between items-center">
+                <h2 class="text-[20px] font-bold text-gray-900">Select Bank</h2>
+                <button onclick="toggleBankModal(false)" class="p-1"><i data-lucide="x" class="w-6 h-6 text-gray-900"></i></button>
+            </div>
+            <div class="p-6 pt-0 space-y-4">
+                <button onclick="navigate('add-bank')" class="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-blue-200 rounded-2xl text-blue-600 font-bold hover:bg-blue-50/50 transition-colors">
+                    <i data-lucide="plus-circle" class="w-6 h-6"></i>
+                    Add New Bank
+                </button>
+                <div id="bank-list" class="space-y-3">
+                    <label class="flex items-center gap-4 p-4 rounded-2xl border-2 border-blue-500 bg-blue-50/50 cursor-pointer">
+                        <div class="relative">
+                            <input type="radio" name="bank-select" value="Cash" checked class="address-radio absolute opacity-0 w-full h-full cursor-pointer">
+                            <div class="radio-circle"></div>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900">Cash</span>
+                    </label>
+                </div>
+            </div>
+            <div class="p-6 mt-auto">
+                <button onclick="selectBankFromModal()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl text-lg shadow-xl shadow-blue-100">
+                    Done
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: ADD NEW BANK DETAIL -->
+        <div id="add-bank" class="hidden fixed inset-0 bg-white z-[200] flex flex-col fade-in">
+            <header class="p-4 flex justify-between items-center border-b">
+                <div class="flex items-center gap-4">
+                    <button onclick="navigate('main-view')"><i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i></button>
+                    <h1 class="text-xl font-bold text-gray-800">Add New Bank Detail</h1>
+                </div>
+                <button class="text-red-600"><i data-lucide="play-circle" class="w-7 h-7 fill-red-600 text-white"></i></button>
+            </header>
+            <main class="flex-1 overflow-y-auto p-4 custom-scroll pb-32">
+                <div class="bg-white rounded-xl border p-5 space-y-6">
+                    <h3 class="text-xl font-bold text-gray-900">Bank details</h3>
+                    
+                    <div class="space-y-4">
+                        <!-- IFSC -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Bank IFSC*</label>
+                            <div class="flex gap-3">
+                                <input type="text" id="bank-ifsc" placeholder="Enter Bank IFSC code" class="flex-1 h-14 border rounded-lg px-4 font-medium outline-none focus:border-blue-500">
+                                <button onclick="simulateFetch('ifsc')" class="bg-blue-600 text-white px-6 font-bold text-sm rounded-xl h-14">Fetch Bank</button>
+                            </div>
+                        </div>
+
+                        <!-- Bank Name -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Bank name*</label>
+                            <input type="text" id="bank-name-input" placeholder="Enter bank name" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- Account No -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Bank account no.*</label>
+                            <input id="bank-account-input" type="number" placeholder="Enter bank account number" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- Confirm Account No -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Confirm Bank account no.*</label>
+                            <input id="bank-account-confirm-input" type="number" placeholder="Confirm Your Bank Account Number" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- Branch -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Bank branch name*</label>
+                            <input type="text" id="bank-branch" placeholder="Enter bank branch name" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- UPI -->
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-1">
+                                <label class="text-sm font-bold text-gray-700">UPI</label>
+                                <i data-lucide="info" class="w-4 h-4 text-gray-400"></i>
+                            </div>
+                            <div class="flex gap-3">
+                                <input id="bank-upi-input" type="text" placeholder="Enter UPI (Optional)" class="flex-1 h-14 border rounded-lg px-4 font-medium outline-none">
+                                <button class="bg-blue-600 text-white px-8 font-bold text-sm rounded-xl h-14">Verify</button>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-medium leading-tight">This UPI ID will be used to generate Dynamic QR codes on the invoices and bills.</p>
+                        </div>
+
+                        <!-- Opening Balance -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Opening balance</label>
+                            <input id="bank-opening-balance-input" type="number" placeholder="Opening balance (Optional)" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- GPay/PhonePe -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">GPay/PhonePe number</label>
+                            <input id="bank-phone-input" type="tel" placeholder="Enter GPay/PhonePe number (Optional)" class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="space-y-1">
+                            <label class="text-sm font-bold text-gray-700">Notes</label>
+                            <input id="bank-notes-input" type="text" placeholder="Beneficiary Name, SWIFT Code etc." class="w-full h-14 border rounded-lg px-4 font-medium outline-none">
+                        </div>
+
+                        <!-- Default Toggle -->
+                        <div class="flex justify-between items-center py-4 border-t border-gray-50 mt-4">
+                            <span class="text-lg font-bold text-gray-900">Default</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="default-bank-toggle" class="sr-only peer" checked>
+                                <div class="w-14 h-7 bg-gray-200 rounded-full toggle-bg peer-focus:outline-none transition-colors"></div>
+                                <!-- "Yes" text inside toggle -->
+                                <span class="absolute left-2 text-[10px] font-bold text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none">Yes</span>
+                                <!-- "No" text inside toggle -->
+                                <span class="absolute right-2 text-[10px] font-bold text-gray-400 opacity-100 peer-checked:opacity-0 transition-opacity pointer-events-none">No</span>
+                                <div class="absolute left-[3px] top-[3px] bg-white w-6 h-6 rounded-full shadow-sm toggle-dot"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <footer class="p-4 bg-white border-t fixed bottom-0 left-0 right-0 z-50">
+                <button onclick="saveBank()" class="w-full bg-[#4ADE80] text-white font-black py-4 rounded-xl text-xl shadow-lg">
+                    Add New Bank
+                </button>
+            </footer>
+        </div>
+
+        <!-- EDIT DOCUMENT MODAL -->
+        <div id="modal-overlay" onclick="toggleEditModal(false)" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[150] transition-opacity opacity-0"></div>
+        
+        <!-- Height fixed se auto kar diya gaya hai taaki content pura dikhe -->
+        <div id="edit-modal" class="desktop-modal fixed top-1/2 left-1/2 bg-white rounded-[2rem] z-[160] p-8 w-[90%] max-w-[550px] h-auto max-h-[100vh] overflow-y-auto shadow-2xl custom-scroll">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Edit Document</h2>
+                <button onclick="toggleEditModal(false)" class="text-gray-400 hover:text-gray-600 font-bold text-xl">✕</button>
+            </div>
+
+            <div class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Prefix</label>
+                        <div class="flex border rounded-xl p-3 bg-gray-50">
+                            <input id="input-prefix" value="INV-" class="bg-transparent outline-none w-full font-semibold">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Document Number</label>
+                        <input id="input-num" type="number" value="1" class="w-full border rounded-xl p-3 bg-gray-50 font-semibold outline-none">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Document Date</label>
+                        <input id="input-date" type="date" value="2026-01-01" class="w-full border rounded-xl p-3 bg-gray-50 font-semibold outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Due Date</label>
+                        <input id="input-due-date" type="date" value="2026-01-01" class="w-full border rounded-xl p-3 bg-gray-50 font-semibold outline-none text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">The invoice due date is the date on which you expect to receive payment from your customer.</label>
+                    <div id="payment-terms-container" class="flex gap-2 flex-wrap">
+                        <button onclick="selectTerm(this, 0)" class="term-btn active border px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">Custom</button>
+                        <button onclick="selectTerm(this, 0)" class="term-btn border px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">net 0</button>
+                        <button onclick="selectTerm(this, 15)" class="term-btn border px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">net 15</button>
+                        <button onclick="selectTerm(this, 30)" class="term-btn border px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">net 30</button>
+                        <button onclick="selectTerm(this, 60)" class="term-btn border px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all">net 60</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Document Title</label>
+                    <div class="flex gap-6 mt-2">
+                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                            <input type="radio" name="doc-type" checked class="w-4 h-4 accent-blue-600"> Invoice
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                            <input type="radio" name="doc-type" class="w-4 h-4 accent-blue-600"> Bill of Supply
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Discount On</label>
+                    <select class="w-full border rounded-xl p-3 bg-gray-50 font-semibold outline-none appearance-none">
+                        <option>Unit Price</option>
+                        <option>Price with Tax</option>
+                        <option>Net Amount</option>
+                        <option>Total Amount</option>
+                    </select>
+                </div>
+                
+                <button onclick="saveInvoiceChanges()" class="w-full bg-[#3b82f6] text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2">
+                    Save & Update
+                </button>
+            </div>
+        </div>
+
+        <!-- SUCCESS OVERLAY -->
+        <div id="success-overlay" class="fixed inset-0 bg-black/50 z-[200] hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 scale-95 opacity-0 transition-all duration-300 transform" id="success-card">
+                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Success!</h2>
+                <p class="text-gray-500 font-medium">Customer has been added successfully.</p>
+                <button onclick="finalizeCustomerSelection()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current date on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+            const yyyy = today.getFullYear();
+            
+            // Format for header: DD-MM-YYYY
+            const formattedDisplayDate = `${dd}-${mm}-${yyyy}`;
+            document.getElementById('header-date').innerText = formattedDisplayDate;
+
+            // Format for input value: YYYY-MM-DD
+            const formattedInputDate = `${yyyy}-${mm}-${dd}`;
+            const dateInput = document.getElementById('supplier-invoice-date');
+            if (dateInput) {
+                dateInput.value = formattedInputDate;
+            }
+            const ui = DOC_UI[DOC_KIND] || DOC_UI.invoice;
+            const titleEl = document.getElementById('create-doc-title');
+            if (titleEl) titleEl.innerText = ui.title;
+            const idEl = document.getElementById('header-inv-id');
+            if (idEl && idEl.innerText.trim() === 'INV-1') idEl.innerText = `${ui.prefix}1`;
+            const preEl = document.getElementById('input-prefix');
+            if (preEl && preEl.value === 'INV-') preEl.value = ui.prefix;
+            const params = new URLSearchParams(window.location.search || '');
+            const editNumber = (params.get('number') || '').trim();
+            if (editNumber && idEl) {
+                idEl.innerText = editNumber;
+                const m = editNumber.match(/^(.*?)(\d+)$/);
+                if (m) {
+                    if (preEl) preEl.value = m[1];
+                    const numEl = document.getElementById('input-num');
+                    if (numEl) numEl.value = m[2];
+                }
+            }
+            initInvoiceUI();
+            refreshMasterData().then(() => loadExistingInvoiceDraft());
+        });
+
+        lucide.createIcons();
+
+        /* ======================================================
+   GLOBAL STATE (single source of truth)
+====================================================== */
+const DOC_KIND = "{{ doc_kind|default('invoice') }}";
+const DOC_UI = {
+    invoice: { title: "Create Invoice", prefix: "INV-" },
+    purchase: { title: "Create Purchase", prefix: "PUR-" },
+    quotation: { title: "Create Quotation", prefix: "QTN-" },
+    challan: { title: "Create Challan", prefix: "CHL-" },
+    credit_note: { title: "Create Credit Note", prefix: "CRN-" },
+    purchase_order: { title: "Create Purchase Order", prefix: "PO-" },
+    proforma: { title: "Create Pro Forma", prefix: "PFI-" },
+    expenses: { title: "Create Expense", prefix: "EXP-" },
+    indirect_income: { title: "Create Indirect Income", prefix: "INC-" }
+};
+
+const state = {
+    view: 'main-view',
+    invoiceId: 'INV-1',
+    prefix: (DOC_UI[DOC_KIND] || DOC_UI.invoice).prefix,
+    number: 1,
+    selectedTermDays: 0,
+    selectedCustomer: null,
+    selectedDispatch: 'None',
+    banks: [{ id: 1, name: 'Cash', details: { type: 'cash' } }],
+    selectedBank: 'Cash',
+    selectedBankId: 1,
+    selectedBankDetails: { type: 'cash' },
+    notes: '',
+    reference: '',
+    terms: '',
+    products: [{ name: 'Sample Product', quantity: 1, unit_price: 100, unit: 'Pcs' }],
+    activeProductIndex: 0,
+    customers: [],
+    catalogProducts: [],
+    signatures: ["No Signature"],
+    selectedSignature: "No Signature",
+    dispatchAddresses: [{ id: "dispatch-none", label: "None", value: "None" }],
+    selectedDispatchId: "dispatch-none"
+};
+
+async function apiJson(url, options = {}) {
+    const res = await fetch(url, {
+        headers: { "Content-Type": "application/json" },
+        ...options
+    });
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) {
+        throw new Error(data.error || "Request failed");
+    }
+    return data;
+}
+
+function getInvoiceDateISO() {
+    const inputDate = document.getElementById('input-date')?.value;
+    if (inputDate) return inputDate;
+    const txt = document.getElementById('header-date')?.innerText?.trim() || '';
+    const parts = txt.split('-');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return new Date().toISOString().slice(0, 10);
+}
+
+function getInvoiceNumber() {
+    return document.getElementById('header-inv-id')?.innerText?.trim() || 'INV-1';
+}
+
+async function ensureCustomerId() {
+    if (state.selectedCustomer?.id) return state.selectedCustomer.id;
+    const name = state.selectedCustomer?.name || 'Default Customer';
+    const phone = state.selectedCustomer?.phone || 'Walk-in Customer';
+    const payload = {
+        name,
+        phone,
+        email: state.selectedCustomer?.email || null,
+        company_name: state.selectedCustomer?.company_name || null,
+        gstin: state.selectedCustomer?.gstin || null,
+        party_type: "customer"
+    };
+    const data = await apiJson('/api/customers', { method: 'POST', body: JSON.stringify(payload) });
+    state.selectedCustomer = { ...(state.selectedCustomer || {}), id: data.id, name, phone };
+    return data.id;
+}
+
+function productsTotal() {
+    return Number(
+        state.products.reduce((sum, p) => sum + (Number(p.quantity || 0) * Number(p.unit_price || 0)), 0).toFixed(2)
+    );
+}
+
+function collectInputs(selector) {
+    const root = document.querySelector(selector);
+    if (!root) return {};
+    const out = {};
+    const nodes = root.querySelectorAll('input, select, textarea');
+    let idx = 0;
+    nodes.forEach((el) => {
+        const key = el.id || el.name || el.placeholder || `field_${idx++}`;
+        if (el.type === 'checkbox') {
+            out[key] = !!el.checked;
+        } else if (el.type === 'radio') {
+            if (el.checked) out[key] = el.value;
+        } else {
+            out[key] = (el.value || '').toString();
+        }
+    });
+    return out;
+}
+
+function getSelectedDocType() {
+    const checked = document.querySelector('input[name="doc-type"]:checked');
+    if (!checked) return "Invoice";
+    const label = checked.closest('label');
+    return (label?.innerText || checked.value || "Invoice").trim();
+}
+
+function collectInvoiceMeta() {
+    const editDate = document.getElementById('input-date')?.value || getInvoiceDateISO();
+    const dueDate = document.getElementById('input-due-date')?.value || null;
+    const dueDisplay = dueDate ? dueDate.split('-').reverse().join('-') : '-';
+    const dueEl = document.getElementById('header-date');
+    if (dueEl) {
+        dueEl.setAttribute('data-due-date', dueDate || '');
+        dueEl.setAttribute('data-due-display', dueDisplay);
+    }
+    return {
+        doc_kind: DOC_KIND,
+        invoice_prefix: document.getElementById('input-prefix')?.value || state.prefix,
+        invoice_number_raw: document.getElementById('input-num')?.value || state.number,
+        invoice_date: editDate,
+        due_date: dueDate,
+        doc_type: getSelectedDocType(),
+        payment_terms: `net ${Number(state.selectedTermDays || 0)}`,
+        export_sez: !!document.getElementById('export-sez')?.checked,
+        dispatch: state.selectedDispatch || 'None',
+        selected_dispatch_id: state.selectedDispatchId || 'dispatch-none',
+        dispatch_addresses: state.dispatchAddresses || [],
+        bank_name: state.selectedBank || '',
+        bank_id: state.selectedBankId || null,
+        bank_details: state.selectedBankDetails || {},
+        banks: state.banks || [],
+        signature_name: state.selectedSignature || (document.getElementById('sig-display-text')?.innerText || '').trim(),
+        signatures: state.signatures || [],
+        reference: state.reference || '',
+        notes: state.notes || '',
+        terms: state.terms || '',
+        customer_snapshot: state.selectedCustomer || {},
+        products_snapshot: state.products || [],
+        forms_dump: {
+            edit: collectInputs('#edit-modal'),
+            customer: collectInputs('#add-customer'),
+            product: collectInputs('#add-product'),
+            dispatch: collectInputs('#dispatch-modal'),
+            address: collectInputs('#address-form-modal'),
+            bank: collectInputs('#add-bank'),
+            signature: collectInputs('#add-signature-view'),
+            notes: collectInputs('#notes-modal'),
+            reference: collectInputs('#reference-modal'),
+            terms: collectInputs('#terms-modal')
+        }
+    };
+}
+
+async function loadCustomersFromApi() {
+    try {
+        const rows = await apiJson('/api/customers?type=customer');
+        state.customers = Array.isArray(rows) ? rows : [];
+    } catch (_) {
+        state.customers = [];
+    }
+}
+
+async function loadCatalogProductsFromApi() {
+    try {
+        const rows = await apiJson('/api/products');
+        state.catalogProducts = Array.isArray(rows) ? rows : [];
+    } catch (_) {
+        state.catalogProducts = [];
+    }
+}
+
+function escapeHtml(str) {
+    return (str || '').toString()
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function viewCustomerDetails(idx) {
+    const c = state.customers[idx];
+    if (!c) return;
+    alert(`Name: ${c.name || '-'}\nPhone: ${c.phone || '-'}\nEmail: ${c.email || '-'}\nCompany: ${c.company_name || '-'}\nGSTIN: ${c.gstin || '-'}`);
+}
+
+async function deleteCustomer(idx) {
+    const c = state.customers[idx];
+    if (!c?.id) return;
+    if (!confirm(`Delete customer "${c.name}"?`)) return;
+    try {
+        await apiJson(`/api/customers/${c.id}`, { method: 'DELETE' });
+        state.customers.splice(idx, 1);
+        if (state.selectedCustomer?.id === c.id) state.selectedCustomer = null;
+        renderCustomerSelectionList();
+        renderCustomerPreview();
+        persistInvoiceDraft(false);
+    } catch (err) {
+        showToast(err.message || "Delete failed");
+    }
+}
+
+function selectCustomerFromList(idx) {
+    const c = state.customers[idx];
+    if (!c) return;
+    state.selectedCustomer = { ...c };
+    renderCustomerPreview();
+    persistInvoiceDraft(false);
+    navigate('main-view');
+}
+
+function renderCustomerSelectionList() {
+    const wrap = document.getElementById('customer-list');
+    if (!wrap) return;
+    if (!state.customers.length) {
+        wrap.innerHTML = `<div class="text-center text-gray-400 text-sm py-10">No customers. Add new customer.</div>`;
+        return;
+    }
+    wrap.innerHTML = state.customers.map((c, idx) => `
+        <div class="bg-white border border-gray-100 rounded-xl p-3 flex items-start justify-between gap-3">
+            <div>
+                <p class="font-bold text-gray-800">${escapeHtml(c.name || '')}</p>
+                <p class="text-xs text-gray-500">${escapeHtml(c.phone || c.email || 'No details')}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="viewCustomerDetails(${idx})" class="text-xs font-semibold text-gray-600 hover:underline">View</button>
+                <button onclick="deleteCustomer(${idx})" class="text-xs font-semibold text-red-600 hover:underline">Delete</button>
+                <button onclick="selectCustomerFromList(${idx})" class="text-xs font-semibold text-blue-600 hover:underline">Select</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderDispatchAddressList() {
+    const wrap = document.getElementById('dispatch-list');
+    if (!wrap) return;
+    const cards = state.dispatchAddresses.map((a) => `
+        <label class="flex items-center gap-4 p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/30">
+            <div class="relative">
+                <input type="radio" name="dispatch-selection" value="${escapeHtml(a.value)}" ${a.id === state.selectedDispatchId ? "checked" : ""} class="address-radio absolute opacity-0 w-full h-full cursor-pointer">
+                <div class="radio-circle"></div>
+            </div>
+            <span class="text-[16px] font-bold text-gray-700">${escapeHtml(a.label)}</span>
+        </label>
+    `).join('');
+    wrap.innerHTML = `
+        ${cards}
+        <button onclick="toggleAddressFormModal(true)" class="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 font-bold hover:bg-gray-50 transition-colors">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-gray-400"></i>
+            Add Dispatch Address
+        </button>
+    `;
+    lucide.createIcons();
+}
+
+function renderSignatureList() {
+    const wrap = document.getElementById('signature-list');
+    if (!wrap) return;
+    const sigRows = state.signatures.map((name, idx) => `
+        <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 transition-all">
+            <div class="relative">
+                <input type="radio" name="sig-option" value="${escapeHtml(name)}" ${name === state.selectedSignature ? "checked" : ""} onchange="handleSigSelect(this)" class="sig-radio absolute opacity-0">
+                <div class="radio-circle"></div>
+            </div>
+            <span class="text-base font-bold text-gray-700 flex-1">${escapeHtml(name)}</span>
+            ${name !== "No Signature" ? `<button type="button" onclick="deleteSignature(${idx})" class="text-xs text-red-600 font-semibold hover:underline">Delete</button>` : ""}
+        </label>
+    `).join('');
+    wrap.innerHTML = `
+        <button onclick="navigateToAddSignature()" class="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-blue-200 rounded-2xl text-blue-600 font-bold hover:bg-blue-50/50 transition-colors">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+            Add New Signature
+        </button>
+        ${sigRows}
+    `;
+    lucide.createIcons();
+}
+
+function deleteSignature(idx) {
+    if (idx < 0 || idx >= state.signatures.length) return;
+    const name = state.signatures[idx];
+    if (!confirm(`Delete signature "${name}"?`)) return;
+    state.signatures.splice(idx, 1);
+    if (!state.signatures.includes("No Signature")) state.signatures.unshift("No Signature");
+    if (!state.signatures.includes(state.selectedSignature)) {
+        state.selectedSignature = "No Signature";
+        document.getElementById('sig-display-text').innerText = state.selectedSignature;
+    }
+    renderSignatureList();
+    persistInvoiceDraft(false);
+}
+
+function renderCustomerPreview() {
+    const selectedBox = document.getElementById('selected-customer-box');
+    const emptyBtn = document.getElementById('empty-customer-btn');
+    const nameEl = document.getElementById('display-cust-name');
+    const detailsEl = document.getElementById('display-cust-details');
+    if (!selectedBox || !emptyBtn || !nameEl || !detailsEl) return;
+
+    if (state.selectedCustomer?.name) {
+        nameEl.innerText = state.selectedCustomer.name;
+        detailsEl.innerText = state.selectedCustomer.phone || state.selectedCustomer.email || 'No details';
+        selectedBox.classList.remove('hidden');
+        emptyBtn.classList.add('hidden');
+    } else {
+        selectedBox.classList.add('hidden');
+        emptyBtn.classList.remove('hidden');
+    }
+}
+
+function renderProductPickerCard() {
+    const p = state.products[state.activeProductIndex] || state.products[0];
+    const nameEl = document.getElementById('picker-product-name');
+    const priceEl = document.getElementById('picker-product-price');
+    const qtyEl = document.getElementById('product-qty');
+    if (!p) {
+        if (nameEl) nameEl.innerText = 'No Product';
+        if (priceEl) priceEl.innerText = 'INR 0.00';
+        if (qtyEl) qtyEl.innerText = '0';
+        return;
+    }
+    if (nameEl) nameEl.innerText = p.name;
+    if (priceEl) priceEl.innerText = `INR ${Number(p.unit_price || 0).toFixed(2)}`;
+    if (qtyEl) qtyEl.innerText = Number(p.quantity || 0);
+}
+
+function renderProductSelectionList() {
+    const wrap = document.getElementById('product-picker-list');
+    if (!wrap) return;
+    const selectedHtml = state.products.map((p, idx) => {
+        const line = Number((Number(p.quantity || 0) * Number(p.unit_price || 0)).toFixed(2));
+        return `
+            <div class="bg-white border rounded-xl shadow-sm relative flex flex-col ${idx === state.activeProductIndex ? 'border-blue-300' : 'border-gray-100'}">
+                <div class="absolute top-2 right-2 text-[11px] font-bold text-gray-400 px-2 py-0.5 bg-gray-50 rounded">${escapeHtml(p.unit || 'UNT')}</div>
+                <div class="p-4 pt-6 flex justify-between items-start">
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-gray-800 text-[16px]">${escapeHtml(p.name)}</h4>
+                        <p class="text-[16px] font-bold text-gray-900">INR ${Number(p.unit_price || 0).toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center gap-4 mt-6">
+                        <button onclick="setActiveProduct(${idx});updateQty(-1)" class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center shadow-sm">-</button>
+                        <div class="text-[18px] font-bold">${Number(p.quantity || 0)}</div>
+                        <button onclick="setActiveProduct(${idx});updateQty(1)" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">+</button>
+                    </div>
+                </div>
+                <div class="border-t border-gray-100 px-4 py-2 flex justify-between items-center bg-white rounded-b-xl">
+                    <div class="flex items-center gap-3">
+                        <button onclick="setActiveProduct(${idx}, true)" class="text-blue-600 font-bold text-[13px] hover:underline">Edit</button>
+                        <button onclick="viewProductDetails('invoice', ${idx})" class="text-gray-600 font-semibold text-[12px] hover:underline">View</button>
+                        <button onclick="deleteProductFromInvoice(${idx})" class="text-red-600 font-semibold text-[12px] hover:underline">Delete</button>
+                    </div>
+                    <span class="text-[12px] font-bold text-blue-700">INR ${line.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const catalogHtml = state.catalogProducts.map((p, idx) => `
+        <div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between">
+            <div>
+                <p class="font-semibold text-gray-800 text-sm">${escapeHtml(p.name || '')}</p>
+                <p class="text-xs text-gray-500">INR ${Number(p.price || 0).toFixed(2)} ${p.unit ? `(${escapeHtml(p.unit)})` : ''}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="viewProductDetails('catalog', ${idx})" class="text-xs font-semibold text-gray-600 hover:underline">View</button>
+                <button onclick="deleteCatalogProduct(${idx})" class="text-xs font-semibold text-red-600 hover:underline">Delete</button>
+                <button onclick="selectCatalogProduct(${idx})" class="text-xs font-semibold text-blue-600 hover:underline">Select</button>
+            </div>
+        </div>
+    `).join('');
+
+    wrap.innerHTML = `
+        <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Selected In This Invoice</div>
+        ${selectedHtml || `<div class="text-center text-gray-400 text-sm py-3">No selected products</div>`}
+        <div class="pt-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Saved Product Master</div>
+        ${catalogHtml || `<div class="text-center text-gray-400 text-sm py-3">No saved products</div>`}
+    `;
+}
+
+function viewProductDetails(source, idx) {
+    const p = source === 'catalog' ? state.catalogProducts[idx] : state.products[idx];
+    if (!p) return;
+    alert(`Name: ${p.name || '-'}\nPrice: INR ${Number(p.unit_price ?? p.price ?? 0).toFixed(2)}\nUnit: ${p.unit || '-'}\nQty: ${p.quantity ?? '-'}`);
+}
+
+function deleteProductFromInvoice(idx) {
+    if (idx < 0 || idx >= state.products.length) return;
+    const p = state.products[idx];
+    if (!confirm(`Delete "${p.name}" from invoice?`)) return;
+    state.products.splice(idx, 1);
+    state.activeProductIndex = Math.max(0, Math.min(state.activeProductIndex, state.products.length - 1));
+    renderSelectedProducts();
+    renderProductPickerCard();
+    persistInvoiceDraft(false);
+}
+
+function selectCatalogProduct(idx) {
+    const p = state.catalogProducts[idx];
+    if (!p) return;
+    state.products.push({
+        id: p.id,
+        name: p.name,
+        quantity: 1,
+        unit_price: Number(p.price || 0),
+        unit: p.unit || ''
+    });
+    state.activeProductIndex = state.products.length - 1;
+    renderSelectedProducts();
+    renderProductPickerCard();
+    persistInvoiceDraft(false);
+    showToast("Product selected");
+}
+
+async function deleteCatalogProduct(idx) {
+    const p = state.catalogProducts[idx];
+    if (!p?.id) return;
+    if (!confirm(`Delete product "${p.name}" from master?`)) return;
+    try {
+        await apiJson(`/api/products/${p.id}`, { method: 'DELETE' });
+        state.catalogProducts.splice(idx, 1);
+        renderProductSelectionList();
+        showToast("Product deleted");
+    } catch (err) {
+        showToast(err.message || "Delete failed");
+    }
+}
+
+function renderSelectedProducts() {
+    const box = document.getElementById('selected-products-box');
+    const list = document.getElementById('selected-products-list');
+    const total = document.getElementById('selected-products-total');
+    if (!box || !list || !total) return;
+
+    if (!state.products.length) {
+        box.classList.add('hidden');
+        list.innerHTML = '';
+        total.innerText = 'INR 0.00';
+        return;
+    }
+
+    box.classList.remove('hidden');
+    list.innerHTML = state.products.map((p, idx) => {
+        const line = Number((Number(p.quantity || 0) * Number(p.unit_price || 0)).toFixed(2));
+        return `
+            <div class="flex items-center justify-between bg-white border border-blue-100 rounded-lg px-3 py-2">
+                <div>
+                    <p class="text-sm font-bold text-gray-800">${p.name}</p>
+                    <p class="text-xs text-gray-500">Qty ${p.quantity} x INR ${Number(p.unit_price || 0).toFixed(2)} ${p.unit ? '(' + p.unit + ')' : ''}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-black text-blue-700">INR ${line.toFixed(2)}</p>
+                    <button onclick="setActiveProduct(${idx}, true)" class="text-[11px] text-blue-600 font-semibold hover:underline">Edit</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    total.innerText = `INR ${productsTotal().toFixed(2)}`;
+    renderProductSelectionList();
+}
+
+function setActiveProduct(index, openEdit = false) {
+    if (index < 0 || index >= state.products.length) return;
+    state.activeProductIndex = index;
+    renderProductPickerCard();
+    if (openEdit) {
+        toggleProductEdit(true);
+    } else {
+        navigate('select-product');
+    }
+}
+
+function initInvoiceUI() {
+    renderCustomerPreview();
+    renderProductPickerCard();
+    renderSelectedProducts();
+    renderCustomerSelectionList();
+    renderDispatchAddressList();
+    renderSignatureList();
+    renderBankList();
+}
+
+async function refreshMasterData() {
+    await Promise.all([loadCustomersFromApi(), loadCatalogProductsFromApi()]);
+    renderCustomerSelectionList();
+    renderProductSelectionList();
+}
+
+async function loadExistingInvoiceDraft() {
+    try {
+        const all = await apiJson(`/api/docs/${DOC_KIND}`);
+        const curNum = getInvoiceNumber();
+        const row = Array.isArray(all) ? all.find((x) => x.number === curNum) : null;
+        if (!row) return;
+
+        if (Array.isArray(row.items) && row.items.length) {
+            state.products = row.items.map((i) => ({
+                name: i.product_name || 'Item',
+                quantity: Number(i.quantity || 0),
+                unit_price: Number(i.unit_price || 0),
+                unit: ''
+            }));
+            state.activeProductIndex = 0;
+        }
+
+        if (row.meta && typeof row.meta === 'object') {
+            state.notes = row.meta.notes || '';
+            state.reference = row.meta.reference || '';
+            state.terms = row.meta.terms || '';
+            state.selectedDispatch = row.meta.dispatch || 'None';
+            state.selectedDispatchId = row.meta.selected_dispatch_id || "dispatch-none";
+            state.selectedBank = row.meta.bank_name || state.selectedBank;
+            state.selectedBankId = row.meta.bank_id || state.selectedBankId;
+            state.selectedBankDetails = row.meta.bank_details || state.selectedBankDetails;
+            if (Array.isArray(row.meta.banks) && row.meta.banks.length) {
+                state.banks = row.meta.banks;
+            }
+            state.selectedSignature = row.meta.signature_name || state.selectedSignature;
+            if (Array.isArray(row.meta.signatures) && row.meta.signatures.length) {
+                state.signatures = row.meta.signatures;
+            }
+            if (Array.isArray(row.meta.dispatch_addresses) && row.meta.dispatch_addresses.length) {
+                state.dispatchAddresses = row.meta.dispatch_addresses;
+            }
+            state.selectedTermDays = Number((row.meta.payment_terms || '0').toString().replace(/\D/g, '') || 0);
+            if (row.meta.customer_snapshot?.name) state.selectedCustomer = row.meta.customer_snapshot;
+            const sig = row.meta.signature_name;
+            if (sig) document.getElementById('sig-display-text').innerText = sig;
+            if (row.meta.due_date) document.getElementById('input-due-date').value = row.meta.due_date;
+            if (row.meta.invoice_date) document.getElementById('input-date').value = row.meta.invoice_date;
+            if (row.meta.invoice_prefix) document.getElementById('input-prefix').value = row.meta.invoice_prefix;
+            if (row.meta.invoice_number_raw) document.getElementById('input-num').value = row.meta.invoice_number_raw;
+        }
+
+        document.getElementById('notes-preview').innerText = state.notes || "No notes added";
+        document.getElementById('reference-preview').innerText = state.reference || "No reference added";
+        document.getElementById('terms-preview').innerText = state.terms || "No terms added";
+        document.getElementById('selected-dispatch-text').innerText = state.selectedDispatch || "None";
+        document.getElementById('display-bank-name').innerText = state.selectedBank || "Cash";
+        document.getElementById('sig-display-text').innerText = state.selectedSignature || "No Signature";
+
+        renderCustomerPreview();
+        renderProductPickerCard();
+        renderSelectedProducts();
+        renderDispatchAddressList();
+        renderSignatureList();
+        renderBankList();
+    } catch (_) {}
+}
+
+async function saveInvoiceToServer() {
+    const customerId = await ensureCustomerId();
+    const payloadItems = state.products
+        .filter((p) => Number(p.quantity || 0) > 0)
+        .map((p) => ({
+            product_name: p.name,
+            quantity: Number(p.quantity || 0),
+            unit_price: Number(p.unit_price || 0)
+        }));
+    if (!payloadItems.length) {
+        throw new Error("Please add at least one product with quantity");
+    }
+    const invoicePayload = {
+        number: getInvoiceNumber(),
+        date: getInvoiceDateISO(),
+        due_date: document.getElementById('input-due-date')?.value || null,
+        customer_id: customerId,
+        total_amount: productsTotal(),
+        items: payloadItems,
+        meta: collectInvoiceMeta()
+    };
+    return apiJson(`/api/docs/${DOC_KIND}`, { method: 'POST', body: JSON.stringify(invoicePayload) });
+}
+
+async function persistInvoiceDraft(silent = true) {
+    try {
+        await saveInvoiceToServer();
+        if (!silent) showToast("Invoice draft saved");
+    } catch (err) {
+        if (!silent) showToast(err.message || "Failed to save draft");
+    }
+}
+
+async function downloadInvoicePDF() {
+    const btn = document.getElementById('download-pdf-btn');
+    const oldText = btn ? btn.innerText : '';
+    try {
+        if (btn) { btn.disabled = true; btn.innerText = 'Preparing...'; }
+        const saved = await saveInvoiceToServer();
+        const pdfUrl = `/api/docs/${DOC_KIND}/${saved.id}/pdf`;
+        window.open(pdfUrl, '_blank');
+        showToast("Invoice PDF Download Started");
+    } catch (err) {
+        showToast(err.message || "Failed to download PDF");
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerText = oldText || 'Download PDF'; }
+    }
+}
+
+/* ======================================================
+   NAVIGATION
+====================================================== */
+function navigate(viewId) {
+        // Saare potential views ki list
+        const views = ['select-customer', 'select-product', 'add-customer', 'add-product', 'add-bank', 'add-signature-view'];
+        
+        views.forEach(v => {
+            const el = document.getElementById(v);
+            if (el) el.classList.add('hidden');
+        });
+
+        // Agar viewId 'main-view' hai, toh sirf overlays hide honge
+        if (viewId !== 'main-view') {
+            const target = document.getElementById(viewId);
+            if (target) target.classList.remove('hidden');
+        }
+
+        if (viewId === 'select-customer') renderCustomerSelectionList();
+        if (viewId === 'select-product') renderProductSelectionList();
+        if (viewId === 'add-signature-view' || viewId === 'main-view') renderSignatureList();
+
+        state.view = viewId;
+        lucide.createIcons();
+    }
+/* ======================================================
+   TOAST
+====================================================== */
+ function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+                toast.classList.remove('opacity-100');
+            }, 2500);
+        }
+/* ======================================================
+   PRODUCT & QTY
+====================================================== */
+function updateQty(delta) {
+    const p = state.products[state.activeProductIndex] || state.products[0];
+    if (!p) return;
+    p.quantity = Math.max(0, Number(p.quantity || 0) + delta);
+    const qty2 = document.getElementById('product-qty');
+    if (qty2) qty2.innerText = p.quantity;
+    renderSelectedProducts();
+    persistInvoiceDraft(true);
+
+    if (delta !== 0) showToast("Quantity Updated");
+}
+
+function populateProductEditModal() {
+    const p = state.products[state.activeProductIndex] || state.products[0];
+    if (!p) return;
+    const titleEl = document.getElementById('modal-product-title');
+    const unitPriceEl = document.getElementById('modal-unit-price');
+    const taxPriceEl = document.getElementById('modal-price-with-tax');
+    const qtyEl = document.getElementById('modal-qty-input');
+    const descEl = document.getElementById('modal-description');
+    const totalEl = document.getElementById('modal-total-price');
+    if (titleEl) titleEl.innerText = p.name || 'Product';
+    if (unitPriceEl) unitPriceEl.value = Number(p.unit_price || 0).toFixed(2);
+    if (taxPriceEl) taxPriceEl.value = Number(p.unit_price || 0).toFixed(2);
+    if (qtyEl) qtyEl.value = Number(p.quantity || 0).toFixed(1);
+    if (descEl) descEl.value = p.description || '';
+    if (totalEl) totalEl.innerText = `INR ${Number((Number(p.quantity || 0) * Number(p.unit_price || 0)).toFixed(2)).toFixed(2)}`;
+}
+
+function toggleProductEdit(open) {
+    const modal = document.getElementById('product-edit-modal');
+    const overlay = document.getElementById('product-edit-overlay');
+
+    if (open) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            overlay.classList.add('open');
+            modal.classList.add('open');
+        }, 10);
+        populateProductEditModal();
+    } else {
+        overlay.classList.remove('open');
+        modal.classList.remove('open');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+
+function applyProductEdit() {
+    const p = state.products[state.activeProductIndex] || state.products[0];
+    if (!p) {
+        toggleProductEdit(false);
+        return;
+    }
+    const unitPrice = Number(document.getElementById('modal-unit-price')?.value || p.unit_price || 0);
+    const qty = Number(document.getElementById('modal-qty-input')?.value || p.quantity || 0);
+    const desc = (document.getElementById('modal-description')?.value || '').trim();
+    const discountValue = Number(document.getElementById('modal-discount-value')?.value || 0);
+    const discountType = document.querySelector('input[name="discount-type"]:checked')?.value || 'percent';
+    const discountOn = document.getElementById('modal-discount-on')?.value || 'Total Amount';
+
+    p.unit_price = Math.max(0, unitPrice);
+    p.quantity = Math.max(0, qty);
+    p.description = desc;
+    p.discount = { type: discountType, value: discountValue, on: discountOn };
+    state.products[state.activeProductIndex] = p;
+
+    renderProductPickerCard();
+    renderSelectedProducts();
+    persistInvoiceDraft(false);
+    showToast("Product Updated");
+    toggleProductEdit(false);
+}
+
+async function saveProduct() {
+    const type = document.querySelector('input[name="prod-type"]:checked')?.value || 'Product';
+    const name = (document.getElementById('prod-name-input')?.value || '').trim();
+    const price = Number(document.getElementById('prod-selling-price')?.value || 0);
+    const unit = document.getElementById('prod-unit')?.value || '';
+    if (!name) {
+        showToast(`Please enter ${type} name`);
+        return;
+    }
+    if (price <= 0) {
+        showToast("Please enter valid selling price");
+        return;
+    }
+
+    let savedId = null;
+    try {
+        const saved = await apiJson('/api/products', {
+            method: 'POST',
+            body: JSON.stringify({ name, price, unit, prod_type: type })
+        });
+        savedId = saved.id || null;
+    } catch (_) {}
+
+    state.products.push({ id: savedId, name, quantity: 1, unit_price: price, unit });
+    if (savedId) {
+        state.catalogProducts.unshift({ id: savedId, name, price, unit, prod_type: type });
+    }
+    state.activeProductIndex = state.products.length - 1;
+    renderProductPickerCard();
+    renderSelectedProducts();
+
+    document.getElementById('prod-name-input').value = '';
+    document.getElementById('prod-selling-price').value = '';
+    persistInvoiceDraft(false);
+    showToast(`${type} Added Successfully!`);
+    setTimeout(() => navigate('main-view'), 350);
+}
+
+function updateTypePlaceholder(type) {
+    document.getElementById('prod-name-input').placeholder =
+        type === 'Product' ? 'Product Name' : 'Service Name';
+    document.getElementById('submit-product-btn').innerText =
+        type === 'Product' ? 'Add Product' : 'Add Service';
+    document.getElementById('add-product-header').innerText =
+        type === 'Product' ? 'Add Product' : 'Add Service';
+}
+
+/* ======================================================
+   BANK
+====================================================== */
+function toggleBankModal(open) {
+    const modal = document.getElementById('bank-modal');
+    const overlay = document.getElementById('bank-overlay');
+
+    if (open) {
+        renderBankList();
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            overlay.classList.add('open');
+            modal.classList.add('open');
+        }, 10);
+    } else {
+        overlay.classList.remove('open');
+        modal.classList.remove('open');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+
+function fetchBankDetails() {
+    showToast("Fetching Bank Details...");
+    setTimeout(() => {
+        document.getElementById('bank-name-input').value = "STATE BANK OF INDIA";
+        document.getElementById('bank-branch').value = "MUMBAI MAIN BRANCH";
+        showToast("Details Fetched!");
+    }, 1000);
+}
+
+function renderBankList() {
+    const wrap = document.getElementById('bank-list');
+    if (!wrap) return;
+    wrap.innerHTML = (state.banks || []).map((b) => `
+        <label class="flex items-center gap-4 p-4 rounded-2xl border-2 ${b.id === state.selectedBankId ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100'} cursor-pointer">
+            <div class="relative">
+                <input type="radio" name="bank-select" value="${b.id}" ${b.id === state.selectedBankId ? 'checked' : ''} class="address-radio absolute opacity-0 w-full h-full cursor-pointer">
+                <div class="radio-circle"></div>
+            </div>
+            <div class="flex-1">
+                <span class="text-lg font-bold text-gray-900">${b.name}</span>
+                <p class="text-xs text-gray-500">${b.details?.ifsc || b.details?.upi || b.details?.account_no || ''}</p>
+            </div>
+        </label>
+    `).join('');
+}
+
+function selectBankFromModal() {
+    const selectedId = Number(document.querySelector('input[name="bank-select"]:checked')?.value || 0);
+    const picked = state.banks.find((b) => Number(b.id) === selectedId);
+    if (picked) {
+        state.selectedBankId = picked.id;
+        state.selectedBank = picked.name;
+        state.selectedBankDetails = picked.details || {};
+        document.getElementById('display-bank-name').innerText = picked.name;
+        persistInvoiceDraft(false);
+    }
+    toggleBankModal(false);
+}
+
+function saveBank() {
+    const name = (document.getElementById('bank-name-input').value || '').trim();
+    const ifsc = (document.getElementById('bank-ifsc').value || '').trim();
+    const account = (document.getElementById('bank-account-input')?.value || '').trim();
+    const accountConfirm = (document.getElementById('bank-account-confirm-input')?.value || '').trim();
+    const branch = (document.getElementById('bank-branch').value || '').trim();
+    const upi = (document.getElementById('bank-upi-input')?.value || '').trim();
+    const opening = (document.getElementById('bank-opening-balance-input')?.value || '').trim();
+    const phone = (document.getElementById('bank-phone-input')?.value || '').trim();
+    const notes = (document.getElementById('bank-notes-input')?.value || '').trim();
+    const isDefault = !!document.getElementById('default-bank-toggle')?.checked;
+
+    if (!name) {
+        showToast("Bank name is required");
+        return;
+    }
+    if (account && accountConfirm && account !== accountConfirm) {
+        showToast("Account numbers do not match");
+        return;
+    }
+
+    const details = {
+        ifsc,
+        account_no: account,
+        branch,
+        upi,
+        opening_balance: opening,
+        phone,
+        notes,
+        default: isDefault
+    };
+    const id = Date.now();
+    const bankObj = { id, name, details };
+    if (isDefault) {
+        state.banks = state.banks.filter((b) => !b.details?.default);
+    }
+    state.banks.unshift(bankObj);
+    state.selectedBankId = id;
+    state.selectedBank = name;
+    state.selectedBankDetails = details;
+    document.getElementById('display-bank-name').innerText = name;
+    renderBankList();
+    persistInvoiceDraft(false);
+    showToast("Bank Added Successfully!");
+    setTimeout(() => navigate('main-view'), 500);
+}
+
+/* ======================================================
+   CUSTOMER
+====================================================== */
+function selectDefaultCustomer() {
+    state.selectedCustomer = { name: "Default Customer", phone: "Walk-in Customer" };
+    renderCustomerPreview();
+    persistInvoiceDraft(false);
+    navigate('main-view');
+}
+
+async function addCustomer() {
+    const name = (document.getElementById('cust-name-input')?.value || '').trim();
+    const phone = (document.getElementById('cust-phone-input')?.value || '').trim();
+    const gstin = (document.getElementById('gst-input')?.value || '').trim();
+    const company_name = (document.getElementById('company-name')?.value || '').trim();
+    const email = (document.querySelector('#add-customer input[type=\"email\"]')?.value || '').trim();
+    if (!name) {
+        showToast("Customer name is required");
+        return;
+    }
+    const customerPayload = {
+        name,
+        phone: phone || null,
+        email: email || null,
+        gstin: gstin || null,
+        company_name: company_name || null,
+        party_type: "customer"
+    };
+    try {
+        const res = await apiJson('/api/customers', { method: 'POST', body: JSON.stringify(customerPayload) });
+        state.selectedCustomer = { ...customerPayload, id: res.id };
+        state.customers.unshift({ ...state.selectedCustomer });
+    } catch (_) {
+        state.selectedCustomer = { ...customerPayload };
+    }
+    renderCustomerPreview();
+    renderCustomerSelectionList();
+    persistInvoiceDraft(false);
+    showToast("Customer Added Successfully");
+    navigate('main-view');
+}
+
+function simulateFetch(mode) {
+    if (mode === 'ifsc') {
+        fetchBankDetails();
+        return;
+    }
+    const gst = (document.getElementById('gst-input')?.value || '').trim();
+    if (!gst) {
+        showToast("Please enter GSTIN first");
+        return;
+    }
+    const companyEl = document.getElementById('company-name');
+    if (companyEl && !companyEl.value.trim()) {
+        companyEl.value = "Fetched Company Name";
+    }
+    showToast("Company details fetched");
+}
+
+function finalizeCustomerSelection() {
+    document.getElementById('success-overlay').classList.add('hidden');
+    renderCustomerPreview();
+    navigate('main-view');
+}
+
+/* ======================================================
+   NOTES / TERMS / REFERENCE
+====================================================== */
+function toggleNotesModal(open) {
+    toggleBottomSheet('notes', open);
+}
+
+function submitNotes() {
+    state.notes = document.getElementById('notes-input').value;
+    document.getElementById('notes-preview').innerText =
+        state.notes || "No notes added";
+    showToast("Notes Saved Successfully");
+    toggleNotesModal(false);
+}
+
+function toggleReferenceModal(open) {
+    toggleBottomSheet('reference', open);
+}
+
+function submitReference() {
+    state.reference = document.getElementById('reference-input').value;
+    showToast("Reference Saved Successfully");
+    toggleReferenceModal(false);
+}
+
+function toggleTermsModal(open) {
+    toggleBottomSheet('terms', open);
+}
+
+function saveTerms() {
+    state.terms = document.getElementById('terms-textarea').value;
+    document.getElementById('terms-preview').innerText =
+        state.terms || "No terms added";
+    showToast("Terms Updated Successfully!");
+    toggleTermsModal(false);
+}
+
+function updatePreviewColor(elementId, hasValue) {
+            const preview = document.getElementById(elementId);
+            if (!preview) return;
+            
+            if (hasValue) {
+                preview.classList.remove('text-gray-400', 'text-xs'); // Removed grey and small font
+                preview.classList.add('text-blue-600', 'font-bold', 'text-sm'); // CHANGE: Added text-sm to increase font size
+            } else {
+                preview.classList.add('text-gray-400', 'text-xs'); // Reverted to default grey/small
+                preview.classList.remove('text-blue-600', 'font-bold', 'text-sm');
+            }
+        }
+
+function submitTerms() {
+            const val = document.getElementById('terms-input').value;
+            state.terms = val;
+            document.getElementById('terms-preview').innerText = val || "No terms added";
+            updatePreviewColor('terms-preview', !!val);
+            persistInvoiceDraft(false);
+            showToast("Terms Saved Successfully!");
+            toggleBottomSheet('terms', false);
+        }
+
+        function submitReference() {
+            const val = document.getElementById('reference-input').value;
+            state.reference = val;
+            document.getElementById('reference-preview').innerText = val || "No reference added";
+             updatePreviewColor('reference-preview', !!val);
+            persistInvoiceDraft(false);
+            showToast("Reference Updated Successfully!");
+            toggleBottomSheet('reference', false);
+        }
+
+        function submitNotes() {
+            const val = document.getElementById('notes-input').value;
+            state.notes = val;
+            document.getElementById('notes-preview').innerText = val || "No notes added";
+            updatePreviewColor('notes-preview', !!val);
+            persistInvoiceDraft(false);
+            showToast("Notes Updated Successfully!");
+            toggleBottomSheet('notes', false);
+        }
+
+/* ======================================================
+   DISPATCH ADDRESS
+====================================================== */
+function toggleDispatchModal(open) {
+    const modal = document.getElementById('dispatch-modal');
+    const overlay = document.getElementById('dispatch-overlay');
+
+    if (open) {
+        renderDispatchAddressList();
+        overlay.classList.remove('hidden'); // Ensure hidden class is removed
+        setTimeout(() => {
+            overlay.classList.add('open');
+            modal.classList.add('open');
+        }, 10);
+    } else {
+        overlay.classList.remove('open');
+        modal.classList.remove('open');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+
+function confirmDispatch() {
+    // Check karein kaunsa radio button selected hai
+    const selectedRadio = document.querySelector('input[name="dispatch-selection"]:checked');
+    const previewText = document.getElementById('selected-dispatch-text');
+    
+    if (selectedRadio) {
+        state.selectedDispatch = selectedRadio.value;
+        const selectedAddr = state.dispatchAddresses.find((a) => a.value === selectedRadio.value);
+        if (selectedAddr) state.selectedDispatchId = selectedAddr.id;
+        // UI par update karein
+        previewText.innerText = state.selectedDispatch;
+        
+        // Agar "None" nahi hai toh text blue kardein
+        if(state.selectedDispatch !== "None") {
+            previewText.classList.remove('text-gray-400');
+            previewText.classList.add('text-blue-600', 'font-bold');
+        } else {
+            previewText.classList.add('text-gray-400');
+            previewText.classList.remove('text-blue-600', 'font-bold');
+        }
+    }
+
+    persistInvoiceDraft(false);
+    showToast("Dispatch Address Updated");
+    toggleDispatchModal(false);
+}
+
+// Address Form Modal ke liye 
+function toggleAddressFormModal(open) {
+    const formModal = document.getElementById('address-form-modal');
+    if (open) {
+        formModal.classList.remove('hidden');
+    } else {
+        formModal.classList.add('hidden');
+    }
+}
+
+function saveNewAddress() {
+    const title = (document.getElementById('addr-title')?.value || '').trim();
+    const line1 = (document.getElementById('addr-line1')?.value || '').trim();
+    const line2 = (document.getElementById('addr-line2')?.value || '').trim();
+    const city = (document.getElementById('addr-city')?.value || '').trim();
+    const stateName = (document.getElementById('addr-state')?.value || '').trim();
+    const pin = (document.getElementById('addr-pincode')?.value || '').trim();
+    if (!line1) {
+        showToast("Address Line 1 is required");
+        return;
+    }
+    const label = title || line1;
+    const val = [line1, line2, city, stateName, pin].filter(Boolean).join(', ');
+    const id = `dispatch-${Date.now()}`;
+    state.dispatchAddresses.push({ id, label, value: val || label });
+    state.selectedDispatchId = id;
+    state.selectedDispatch = val || label;
+    renderDispatchAddressList();
+    document.getElementById('selected-dispatch-text').innerText = state.selectedDispatch;
+    toggleAddressFormModal(false);
+    persistInvoiceDraft(false);
+    showToast("Dispatch address saved");
+}
+
+/* ======================================================
+   EDIT MODAL
+====================================================== */
+function toggleEditModal(open) {
+            const modal = document.getElementById('edit-modal');
+            const overlay = document.getElementById('modal-overlay');
+            if (open) {
+                overlay.classList.add('open');
+                modal.classList.add('open');
+            } else {
+                overlay.classList.remove('open');
+                modal.classList.remove('open');
+            }
+        }
+
+        function selectTerm(btn, days) {
+            // Saare buttons se active class hatao
+            const buttons = document.querySelectorAll('.term-btn');
+            buttons.forEach(b => b.classList.remove('active', 'border-blue-600'));
+            
+            // Current button ko active karo
+            btn.classList.add('active');
+            state.selectedTermDays = Number(days || 0);
+            persistInvoiceDraft(true);
+            showToast(`Term selected: net ${days}`);
+        }
+
+        function saveInvoiceChanges() {
+            state.prefix = document.getElementById('input-prefix').value;
+            state.docNum = document.getElementById('input-num').value;
+            const invDate = document.getElementById('input-date')?.value;
+            
+            // Header update karo
+            document.getElementById('header-inv-id').innerText = state.prefix + state.docNum;
+            if (invDate) {
+                const dateDisplay = invDate.split('-').reverse().join('-');
+                document.getElementById('header-date').innerText = dateDisplay;
+            }
+            persistInvoiceDraft(false);
+            showToast("Document Details Updated!");
+            toggleEditModal(false);
+        }
+
+/* ======================================================
+   SIGNATURE
+====================================================== */
+function toggleSignatureSheet(show) {
+            const sheet = document.getElementById('sig-sheet');
+            const overlay = document.getElementById('sig-overlay');
+            if (show) {
+                renderSignatureList();
+                overlay.classList.add('open');
+                sheet.classList.add('open');
+            } else {
+                overlay.classList.remove('open');
+                sheet.classList.remove('open');
+            }
+        }
+
+        function navigateToAddSignature() {
+            toggleSignatureSheet(false);
+            const view = document.getElementById('add-signature-view');
+            view.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeAddSignature() {
+            document.getElementById('add-signature-view').classList.add('hidden');
+        }
+
+        function saveNewSignature() {
+            const name = document.getElementById('sig-name-input').value;
+            if (!name) {
+                showToast("Please enter signature name");
+                return;
+            }
+            showToast("Signature added successfully!");
+            setTimeout(() => {
+                closeAddSignature();
+                if (!state.signatures.includes(name)) state.signatures.push(name);
+                state.selectedSignature = name;
+                renderSignatureList();
+                document.getElementById('sig-display-text').innerText = name;
+                document.getElementById('sig-display-text').classList.add('text-blue-600', 'font-bold');
+                persistInvoiceDraft(false);
+            }, 800);
+        }
+
+        function handleSigSelect(radio) {
+            state.selectedSignature = radio.value;
+            document.getElementById('sig-display-text').innerText = radio.value;
+            if (radio.value === 'No Signature') {
+                document.getElementById('sig-display-text').classList.remove('text-blue-600', 'font-bold');
+            } else {
+                document.getElementById('sig-display-text').classList.add('text-blue-600', 'font-bold');
+            }
+            persistInvoiceDraft(true);
+            setTimeout(() => toggleSignatureSheet(false), 200);
+        }
+
+        // Interaction hints
+        document.querySelectorAll('input, button').forEach(el => {
+            el.addEventListener('focus', () => {
+                // Potential desktop accessibility improvements
+            });
+        });
+
+/* ======================================================
+   SHARED BOTTOM SHEET HANDLER
+====================================================== */
+function toggleBottomSheet(prefix, open) {
+    const modal = document.getElementById(`${prefix}-modal`);
+    const overlay = document.getElementById(`${prefix}-overlay`);
+
+    if (open) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            overlay.classList.add('open');
+            modal.classList.add('open');
+        }, 10);
+    } else {
+        overlay.classList.remove('open');
+        modal.classList.remove('open');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+/* ======================================================
+   DROPDOWN TOGGLE COLLAPSEIBLE
+====================================================== */
+function toggleCollapsible(id) {
+            const content = document.getElementById(id + '-content');
+            const icon = document.getElementById(id + '-icon');
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refer Your Friends</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .illustration-container {
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .btn-primary {
+            background-color: #3b59ff;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:active {
+            background-color: #2a41d6;
+            transform: scale(0.96);
+        }
+
+        .btn-primary:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Smooth reveal for content */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50">
+
+    <!-- Header (Desktop Optimized) -->
+    <header class="flex items-center px-4 md:px-8 py-4 sticky top-0 bg-white z-50 border-b">
+        <div class="max-w-6xl mx-auto w-full flex items-center">
+            <button class="p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors active:bg-gray-200" onclick="window.location.href='dashboard.html'">
+                <i class="fa-solid fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="ml-4 text-xl font-bold text-gray-800">Refer your friends</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8 fade-in">
+        <div class="max-w-5xl w-full bg-white md:rounded-3xl md:shadow-2xl md:overflow-hidden md:flex">
+            
+            <!-- Left Side: Illustration (Hidden/Adjusted for Desktop) -->
+            <div class="illustration-container md:w-1/2 flex flex-col items-center justify-center py-10 px-6 md:p-12 border-b md:border-b-0 md:border-r border-gray-100">
+                <img 
+                    src="https://img.freepik.com/free-vector/refer-friend-concept-illustration_114360-7039.jpg" 
+                    alt="Referral Illustration" 
+                    class="h-56 md:h-80 w-auto mb-6 rounded-lg mix-blend-multiply transition-transform hover:scale-105 duration-500"
+                    onerror="this.src='https://placehold.co/600x450/f8fafc/334155?text=Techcraftery+Referral'"
+                />
+            </div>
+
+            <!-- Right Side: Text and Actions -->
+            <div class="md:w-1/2 flex flex-col justify-center p-6 md:p-12 space-y-8">
+                <!-- Promotion Heading -->
+                <div class="text-center md:text-left">
+                    <h2 class="text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+                        You get ₹1000,<br class="hidden md:block"> they get 2 months free
+                    </h2>
+                </div>
+
+                <!-- Rewards List -->
+                <div class="space-y-8">
+                    <!-- Item 1 -->
+                    <div class="flex items-start gap-5 group">
+                        <div class="mt-1 flex-shrink-0 w-10 h-10 flex items-center justify-center bg-blue-50 rounded-2xl group-hover:bg-blue-100 transition-colors">
+                            <i class="fa-solid fa-handshake text-xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-[17px] md:text-lg text-gray-800 font-medium leading-snug">
+                                Invite your friends to install Techcraftery App with your unique link
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="flex items-start gap-5 group">
+                        <div class="mt-1 flex-shrink-0 w-10 h-10 flex items-center justify-center bg-yellow-50 rounded-2xl group-hover:bg-yellow-100 transition-colors">
+                            <i class="fa-solid fa-coins text-xl text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-[17px] md:text-lg text-gray-800 font-medium leading-snug">
+                                Receive ₹1000 in credits when they take any Techcraftery subscription plan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="flex items-start gap-5 group">
+                        <div class="mt-1 flex-shrink-0 w-10 h-10 flex items-center justify-center bg-red-50 rounded-2xl group-hover:bg-red-100 transition-colors">
+                            <i class="fa-solid fa-gift text-xl text-red-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-[17px] md:text-lg text-gray-800 font-medium leading-snug">
+                                Your friend gets 2-months free on their annual subscription.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button (Inline for Desktop) -->
+                <div class="pt-4">
+                    <button id="referBtn" class="w-full btn-primary text-white font-bold py-5 rounded-2xl shadow-xl flex items-center justify-center space-x-2 text-lg hover:shadow-2xl">
+                        <span>Find Friends to Refer</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile-only Footer (Hidden on Desktop) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-40">
+        <button id="referBtnMobile" class="w-full btn-primary text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center">
+            <span>Find Friends to Refer</span>
+        </button>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 shadow-2xl text-base font-semibold">
+        Link copied to clipboard!
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // 2. Initialize with Fallback for invalid keys
+        let db = null;
+        let currentUser = null;
+        let isSimulated = false;
+
+        function startSimulation() {
+            isSimulated = true;
+            console.warn("Firebase API key invalid or missing. Switching to Simulation Mode.");
+            currentUser = { uid: "SIM-" + Math.random().toString(36).substring(2, 10).toUpperCase() };
+        }
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            db = getFirestore(app);
+
+            // If key is the placeholder, skip actual auth call to avoid console noise
+            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                startSimulation();
+            } else {
+                signInAnonymously(auth).catch(err => {
+                    console.error("Auth Error:", err.message);
+                    if (err.code === 'auth/api-key-not-valid' || err.code === 'auth/invalid-api-key') {
+                        startSimulation();
+                    }
+                });
+                onAuthStateChanged(auth, (user) => { 
+                    if (user) currentUser = user; 
+                });
+            }
+        } catch (e) {
+            startSimulation();
+        }
+
+        // UI Logic for buttons
+        const referBtn = document.getElementById('referBtn');
+        const referBtnMobile = document.getElementById('referBtnMobile');
+        const toast = document.getElementById('toast');
+
+        const showToast = (message) => {
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'bottom-12');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'bottom-12');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        };
+
+        const handleReferClick = async (btn) => {
+            if (!currentUser && !isSimulated) {
+                showToast("Connecting to server...");
+                return;
+            }
+
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div>';
+            btn.disabled = true;
+
+            // Wait a moment for effect
+            await new Promise(r => setTimeout(r, 600));
+
+            try {
+                const referralCode = currentUser.uid.substring(0, 8).toUpperCase();
+                const referralLink = `https://techcraftery.app/refer/${referralCode}`;
+
+                // Only try Firestore if we have a real DB connection
+                if (db && !isSimulated) {
+                    try {
+                        await addDoc(collection(db, 'referral_clicks'), {
+                            userId: currentUser.uid,
+                            referralCode: referralCode,
+                            timestamp: serverTimestamp(),
+                            platform: window.innerWidth > 768 ? 'desktop' : 'mobile'
+                        });
+                    } catch (dbErr) {
+                        console.warn("Firestore save failed (permissions?), but link generated.");
+                    }
+                }
+
+                // Copy to clipboard
+                const textArea = document.createElement("textarea");
+                textArea.value = referralLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                showToast(`Copied: ${referralLink}${isSimulated ? ' (Demo)' : ''}`);
+            } catch (error) {
+                console.error(error);
+                showToast("Error generating link.");
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        };
+
+        referBtn.addEventListener('click', () => handleReferClick(referBtn));
+        referBtnMobile.addEventListener('click', () => handleReferClick(referBtnMobile));
+    </script>
+</body>
+</html>

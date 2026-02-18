@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-[#000b3d] text-white min-h-screen">
+    <div class="flex min-h-screen">
+        <aside class="w-80 hidden lg:flex flex-col border-r border-white/20 bg-[#00114f]">
+            <div class="p-6 border-b border-white/15">
+                <div class="flex items-center gap-3">
+                    <img src="/static/logo2.jpg" alt="Techcraftery" class="h-14 w-auto rounded-lg border border-white/30 p-1 bg-white/5">
+                    <div>
+                        <p class="font-black text-lg leading-none">Techcraftery</p>
+                        <p class="text-xs text-white/70 tracking-wider uppercase">Admin Console</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-b border-white/15">
+                <p class="text-xs text-white/60 uppercase tracking-[0.2em] mb-2">Session</p>
+                <div class="bg-white/5 border border-white/20 rounded-xl p-3">
+                    <p id="sidebar-user" class="font-bold text-sm">User</p>
+                    <p id="sidebar-role" class="text-xs text-blue-200 uppercase tracking-widest">Admin</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div>
+                    <p class="text-xs text-white/60 uppercase tracking-[0.2em] mb-2">Management</p>
+                    <a href="/admin/users" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10">
+                        <i class="fa-solid fa-users text-sm"></i><span>User</span>
+                    </a>
+                    <a href="/admin/docs" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10">
+                        <i class="fa-solid fa-user-shield text-sm"></i><span>Admin</span>
+                    </a>
+                    <a href="/admin/docs#analytics-section" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10">
+                        <i class="fa-solid fa-chart-line text-sm"></i><span>Analytics</span>
+                    </a>
+                </div>
+
+                <div>
+                    <p class="text-xs text-white/60 uppercase tracking-[0.2em] mb-2">Billing Icons</p>
+                    <button onclick="selectDocType('invoice')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-regular fa-file-lines text-sm"></i><span>Invoice</span></button>
+                    <button onclick="selectDocType('purchase')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-cart-shopping text-sm"></i><span>Purchase</span></button>
+                    <button onclick="selectDocType('quotation')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-file-invoice-dollar text-sm"></i><span>Quotation</span></button>
+                    <button onclick="selectDocType('challan')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-truck text-sm"></i><span>Challan</span></button>
+                    <button onclick="selectDocType('credit_note')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-arrow-up-from-bracket text-sm"></i><span>Credit Note</span></button>
+                    <button onclick="selectDocType('purchase_order')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-cube text-sm"></i><span>Purchase Order</span></button>
+                    <button onclick="selectDocType('expenses')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-receipt text-sm"></i><span>Expenses</span></button>
+                    <button onclick="selectDocType('proforma')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-file-contract text-sm"></i><span>Pro Forma</span></button>
+                    <button onclick="selectDocType('indirect_income')" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10"><i class="fa-solid fa-hand-holding-dollar text-sm"></i><span>Indirect Income</span></button>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-white/15 flex gap-2">
+                <a href="/dashboard" class="flex-1 text-center px-3 py-2 rounded-lg border border-white/25 hover:bg-white/10 text-sm font-bold">Dashboard</a>
+                <a href="/logout" class="flex-1 text-center px-3 py-2 rounded-lg bg-white text-[#00114f] text-sm font-black">Logout</a>
+            </div>
+        </aside>
+
+        <main class="flex-1">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <header class="flex flex-wrap gap-3 items-center justify-between mb-6 lg:hidden">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-wide">Admin Panel</h1>
+                        <p class="text-sm text-white/70">Users, Roles and Billing Documents</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="/dashboard" class="px-4 py-2 rounded-lg border border-white/30 hover:bg-white/10">Dashboard</a>
+                        <a href="/logout" class="px-4 py-2 rounded-lg bg-white text-[#000b3d] font-bold">Logout</a>
+                    </div>
+                </header>
+
+                <div id="msg" class="hidden mb-4 px-4 py-3 rounded-lg border"></div>
+
+                <section id="users-section" class="mb-8">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-xl font-black">Users & Roles</h2>
+                        <button onclick="loadUsers()" class="text-xs font-bold px-3 py-1 rounded border border-white/30 hover:bg-white/10">Refresh</button>
+                    </div>
+                    <div class="bg-white/5 border border-white/20 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Name</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Email</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Role</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-rows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="docs-section">
+                    <div class="flex flex-wrap gap-2 items-center justify-between mb-3">
+                        <h2 class="text-xl font-black">All Billing Icons Data</h2>
+                        <div class="flex gap-2">
+                            <select id="doc-filter" onchange="renderDocsTable()" class="bg-[#00145f] border border-white/25 rounded px-3 py-2 text-sm">
+                                <option value="all">All Icons</option>
+                            </select>
+                            <button onclick="loadDocuments()" class="text-xs font-bold px-3 py-2 rounded border border-white/30 hover:bg-white/10">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 border border-white/20 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Type</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Number</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Date</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Total</th>
+                                        <th class="px-4 py-3 text-xs uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="doc-rows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="analytics-section" class="mt-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xl font-black">Analytics</h2>
+                        <p id="analytics-title" class="text-xs uppercase tracking-widest text-white/70">All Icons</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Documents</p>
+                            <p id="a-total-docs" class="text-2xl font-black mt-1">0</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Total Amount</p>
+                            <p id="a-total-amount" class="text-2xl font-black mt-1">INR 0.00</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Average Value</p>
+                            <p id="a-avg-amount" class="text-2xl font-black mt-1">INR 0.00</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Paid</p>
+                            <p id="a-paid-count" class="text-2xl font-black mt-1">0</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Paid Amount</p>
+                            <p id="a-paid-amount" class="text-xl font-black mt-1">INR 0.00</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-xl p-4">
+                            <p class="text-xs text-white/70 uppercase">Pending Amount</p>
+                            <p id="a-pending-amount" class="text-xl font-black mt-1">INR 0.00</p>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 border border-white/20 rounded-2xl p-4">
+                        <p class="text-xs uppercase tracking-wider text-white/70 mb-2">Type Breakdown</p>
+                        <div id="analytics-breakdown" class="space-y-2"></div>
+                    </div>
+
+                    <div class="bg-white/5 border border-white/20 rounded-2xl p-4 mt-3">
+                        <p class="text-xs uppercase tracking-wider text-white/70 mb-2">Separate Analytics (All Icons)</p>
+                        <div id="type-analytics-cards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+                        <div class="bg-white/5 border border-white/20 rounded-2xl p-4">
+                            <p class="text-xs uppercase tracking-wider text-white/70 mb-3">Amount Trend</p>
+                            <div class="h-64">
+                                <canvas id="trend-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-2xl p-4">
+                            <p class="text-xs uppercase tracking-wider text-white/70 mb-3">Type Amount Comparison</p>
+                            <div class="h-64">
+                                <canvas id="type-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-2xl p-4">
+                            <p class="text-xs uppercase tracking-wider text-white/70 mb-3">Paid vs Pending</p>
+                            <div class="h-64">
+                                <canvas id="status-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white/5 border border-white/20 rounded-2xl p-4">
+                            <p class="text-xs uppercase tracking-wider text-white/70 mb-3">Top Documents</p>
+                            <div class="h-64">
+                                <canvas id="top-docs-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const ADMIN_VIEW = "{{ admin_view|default('users') }}";
+        const DOC_CONFIG = [
+            { type: "invoice", label: "Invoice", page: "invoice.html" },
+            { type: "purchase", label: "Purchase", page: "purchase.html" },
+            { type: "quotation", label: "Quotation", page: "quotation.html" },
+            { type: "challan", label: "Challan", page: "challan.html" },
+            { type: "credit_note", label: "Credit Note", page: "creditnote.html" },
+            { type: "purchase_order", label: "Purchase Order", page: "porder.html" },
+            { type: "expenses", label: "Expenses", page: "expenses.html" },
+            { type: "proforma", label: "Pro Forma", page: "proforma.html" },
+            { type: "indirect_income", label: "Indirect Income", page: "indirectincome.html" }
+        ];
+        const LEGACY_DOC_ENDPOINT = {
+            invoice: "/api/invoices",
+            purchase: "/api/purchases",
+            quotation: "/api/quotations",
+            challan: "/api/challans",
+            credit_note: "/api/credit-notes",
+            purchase_order: "/api/purchase-orders",
+            expenses: "/api/expenses",
+            proforma: "/api/proforma-invoices",
+            indirect_income: "/api/indirect-income"
+        };
+
+        let allDocs = [];
+        let analyticsDocs = [];
+        let currentDocFilter = "all";
+        let trendChart = null;
+        let typeChart = null;
+        let statusChart = null;
+        let topDocsChart = null;
+
+        async function apiJson(url, options = {}) {
+            const res = await fetch(url, {
+                headers: { "Content-Type": "application/json" },
+                ...options
+            });
+            let data = {};
+            try { data = await res.json(); } catch (_) {}
+            if (!res.ok) throw new Error(data.error || "Request failed");
+            return data;
+        }
+
+        function showMsg(text, ok = true) {
+            const box = document.getElementById("msg");
+            box.classList.remove("hidden");
+            box.className = `mb-4 px-4 py-3 rounded-lg border ${ok ? "bg-emerald-500/20 border-emerald-300 text-emerald-100" : "bg-red-500/20 border-red-300 text-red-100"}`;
+            box.textContent = text;
+        }
+
+        function money(v) {
+            return `INR ${Number(v || 0).toFixed(2)}`;
+        }
+
+        function escapeHtml(v) {
+            return (v || "")
+                .toString()
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function roleOptions(selected) {
+            return `
+                <option value="user" ${selected === "user" ? "selected" : ""}>User</option>
+                <option value="admin" ${selected === "admin" ? "selected" : ""}>Admin</option>
+            `;
+        }
+
+        function userRowHtml(u) {
+            return `
+                <tr class="border-t border-white/10">
+                    <td class="px-4 py-3 font-semibold">${escapeHtml(u.name || "-")}</td>
+                    <td class="px-4 py-3 text-white/80">${escapeHtml(u.email || "-")}</td>
+                    <td class="px-4 py-3">
+                        <select onchange="updateRole(${u.id}, this.value)" class="bg-[#00145f] border border-white/20 rounded px-2 py-1 text-sm">
+                            ${roleOptions(u.role)}
+                        </select>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs font-bold px-2 py-1 rounded ${u.is_active ? "bg-emerald-500/20 text-emerald-200" : "bg-red-500/20 text-red-200"}">
+                            ${u.is_active ? "ACTIVE" : "BLOCKED"}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="toggleStatus(${u.id}, ${u.is_active ? "false" : "true"})" class="text-xs font-bold px-3 py-1 rounded border border-white/30 hover:bg-white/10">
+                            ${u.is_active ? "Block" : "Unblock"}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        async function loadUsers() {
+            try {
+                const rows = await apiJson("/api/admin/users");
+                const wrap = document.getElementById("user-rows");
+                wrap.innerHTML = rows.map(userRowHtml).join("") || `<tr><td colspan="5" class="px-4 py-6 text-center text-white/70">No users found.</td></tr>`;
+            } catch (err) {
+                showMsg(err.message || "Unable to load users", false);
+            }
+        }
+
+        async function updateRole(uid, role) {
+            try {
+                await apiJson(`/api/admin/users/${uid}/role`, {
+                    method: "PUT",
+                    body: JSON.stringify({ role })
+                });
+                showMsg("Role updated");
+                loadUsers();
+            } catch (err) {
+                showMsg(err.message || "Role update failed", false);
+            }
+        }
+
+        async function toggleStatus(uid, isActive) {
+            try {
+                await apiJson(`/api/admin/users/${uid}/status`, {
+                    method: "PUT",
+                    body: JSON.stringify({ is_active: isActive })
+                });
+                showMsg("Status updated");
+                loadUsers();
+            } catch (err) {
+                showMsg(err.message || "Status update failed", false);
+            }
+        }
+
+        function getDocConfig(type) {
+            return DOC_CONFIG.find((d) => d.type === type) || { label: type, page: "invoice.html" };
+        }
+
+        function initDocFilter() {
+            const filter = document.getElementById("doc-filter");
+            filter.innerHTML = `<option value="all">All Icons</option>` + DOC_CONFIG.map((d) => `<option value="${d.type}">${d.label}</option>`).join("");
+        }
+
+        function normalizeLegacyRows(docType, rows) {
+            if (!Array.isArray(rows)) return [];
+            return rows.map((r) => {
+                if (docType === "expenses") {
+                    const paid = r.is_paid !== false;
+                    return {
+                        id: r.id,
+                        doc_type: docType,
+                        number: r.number || `EXP-${r.id}`,
+                        date: r.date || r.expense_date || "",
+                        total_amount: Number(r.total_amount ?? r.amount ?? 0),
+                        meta: { status: paid ? "paid" : "pending" },
+                        items: []
+                    };
+                }
+                if (docType === "indirect_income") {
+                    const paid = r.is_received !== false;
+                    return {
+                        id: r.id,
+                        doc_type: docType,
+                        number: r.number || `INC-${r.id}`,
+                        date: r.date || r.income_date || "",
+                        total_amount: Number(r.total_amount ?? r.amount ?? 0),
+                        meta: { status: paid ? "paid" : "pending" },
+                        items: []
+                    };
+                }
+                return {
+                    ...r,
+                    doc_type: docType,
+                    total_amount: Number(r.total_amount || 0),
+                    meta: r.meta || {}
+                };
+            });
+        }
+
+        async function fetchDocsRows(docType) {
+            try {
+                const rows = await apiJson(`/api/docs/${docType}`);
+                const normalized = normalizeLegacyRows(docType, rows).map((r) => ({ ...r, _source: "docs" }));
+                if (normalized.length) return normalized;
+            } catch (_) {}
+            const legacyUrl = LEGACY_DOC_ENDPOINT[docType];
+            if (!legacyUrl) return [];
+            try {
+                const legacyRows = await apiJson(legacyUrl);
+                return normalizeLegacyRows(docType, legacyRows).map((r) => ({ ...r, _source: "legacy" }));
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function renderDocsTable() {
+            const filterType = document.getElementById("doc-filter").value;
+            currentDocFilter = filterType;
+            const rows = filterType === "all" ? allDocs : allDocs.filter((d) => d.doc_type === filterType);
+            const wrap = document.getElementById("doc-rows");
+            if (!rows.length) {
+                wrap.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-white/70">No documents found.</td></tr>`;
+                renderAnalytics(filterType === "all" ? analyticsDocs : analyticsDocs.filter((d) => d.doc_type === filterType));
+                return;
+            }
+            wrap.innerHTML = rows.map((r) => {
+                const cfg = getDocConfig(r.doc_type);
+                return `
+                    <tr class="border-t border-white/10">
+                        <td class="px-4 py-3 font-semibold">${escapeHtml(cfg.label)}</td>
+                        <td class="px-4 py-3">${escapeHtml(r.number || "-")}</td>
+                        <td class="px-4 py-3 text-white/80">${escapeHtml(r.date || "-")}</td>
+                        <td class="px-4 py-3 font-bold">${money(r.total_amount)}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="viewDoc('${r.doc_type}', ${r.id})" class="text-xs font-bold px-2 py-1 rounded border border-white/30 hover:bg-white/10">View</button>
+                                ${r._source === "docs" ? `
+                                <button onclick="editDoc('${r.doc_type}', ${r.id})" class="text-xs font-bold px-2 py-1 rounded border border-blue-300/50 text-blue-200 hover:bg-blue-500/20">Edit</button>
+                                <button onclick="deleteDoc('${r.doc_type}', ${r.id})" class="text-xs font-bold px-2 py-1 rounded border border-red-300/50 text-red-200 hover:bg-red-500/20">Delete</button>
+                                <button onclick="pdfDoc('${r.doc_type}', ${r.id})" class="text-xs font-bold px-2 py-1 rounded border border-emerald-300/50 text-emerald-200 hover:bg-emerald-500/20">PDF</button>
+                                ` : `<span class="text-xs text-white/60">Legacy record</span>`}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+            renderAnalytics(filterType === "all" ? analyticsDocs : analyticsDocs.filter((d) => d.doc_type === filterType));
+        }
+
+        async function loadDocuments() {
+            try {
+                const sets = await Promise.all(
+                    DOC_CONFIG.map(async (cfg) => {
+                        try {
+                            const rows = await apiJson(`/api/docs/${cfg.type}`);
+                            return (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, doc_type: cfg.type, _source: "docs" }));
+                        } catch (_) {
+                            return [];
+                        }
+                    })
+                );
+                allDocs = sets.flat().sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+                const analyticsSets = await Promise.all(DOC_CONFIG.map((cfg) => fetchDocsRows(cfg.type)));
+                analyticsDocs = analyticsSets.flat().sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+                renderDocsTable();
+            } catch (err) {
+                showMsg(err.message || "Unable to load documents", false);
+            }
+        }
+
+        function docById(type, id) {
+            return allDocs.find((d) => d.doc_type === type && Number(d.id) === Number(id));
+        }
+
+        function viewDoc(type, id) {
+            const row = docById(type, id);
+            if (!row) return;
+            const items = (row.items || [])
+                .map((i) => `${i.product_name || "Item"} | Qty ${i.quantity || 0} | Rate ${i.unit_price || 0}`)
+                .join("\n") || "No items";
+            alert(`Type: ${getDocConfig(type).label}\nNo: ${row.number || "-"}\nDate: ${row.date || "-"}\nTotal: ${money(row.total_amount)}\n\n${items}`);
+        }
+
+        function editDoc(type, id) {
+            const row = docById(type, id);
+            if (!row) return;
+            const cfg = getDocConfig(type);
+            window.location.href = `/${cfg.page}?number=${encodeURIComponent(row.number || "")}`;
+        }
+
+        async function deleteDoc(type, id) {
+            const row = docById(type, id);
+            if (!row) return;
+            if (!confirm(`Delete ${getDocConfig(type).label} "${row.number || id}"?`)) return;
+            try {
+                await apiJson(`/api/docs/${type}/${id}`, { method: "DELETE" });
+                showMsg("Document deleted");
+                await loadDocuments();
+            } catch (err) {
+                showMsg(err.message || "Delete failed", false);
+            }
+        }
+
+        function pdfDoc(type, id) {
+            window.open(`/api/docs/${type}/${id}/pdf`, "_blank");
+        }
+
+        function selectDocType(type) {
+            if (ADMIN_VIEW !== "docs") {
+                window.location.href = `/admin/docs?type=${encodeURIComponent(type)}`;
+                return;
+            }
+            const filter = document.getElementById("doc-filter");
+            if (!filter) return;
+            filter.value = type;
+            renderDocsTable();
+            document.getElementById("docs-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function renderAnalytics(rows) {
+            const totalDocs = rows.length;
+            const totalAmount = rows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
+            const avgAmount = totalDocs ? totalAmount / totalDocs : 0;
+            const paidRows = rows.filter((r) => String(r?.meta?.status || "").toLowerCase() === "paid");
+            const paidCount = paidRows.length;
+            const paidAmount = paidRows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
+            const pendingAmount = Math.max(0, totalAmount - paidAmount);
+            const currentCfg = currentDocFilter === "all" ? { label: "All Icons" } : getDocConfig(currentDocFilter);
+
+            document.getElementById("analytics-title").innerText = currentCfg.label || "All Icons";
+            document.getElementById("a-total-docs").innerText = String(totalDocs);
+            document.getElementById("a-total-amount").innerText = money(totalAmount);
+            document.getElementById("a-avg-amount").innerText = money(avgAmount);
+            document.getElementById("a-paid-count").innerText = String(paidCount);
+            document.getElementById("a-paid-amount").innerText = money(paidAmount);
+            document.getElementById("a-pending-amount").innerText = money(pendingAmount);
+
+            const breakdownEl = document.getElementById("analytics-breakdown");
+            const source = currentDocFilter === "all" ? analyticsDocs : rows;
+            const byType = {};
+            source.forEach((r) => {
+                const key = r.doc_type || "other";
+                byType[key] = byType[key] || { count: 0, amount: 0 };
+                byType[key].count += 1;
+                byType[key].amount += Number(r.total_amount || 0);
+            });
+            const entries = Object.entries(byType);
+            if (!entries.length) {
+                breakdownEl.innerHTML = `<div class="text-sm text-white/70">No data.</div>`;
+                return;
+            }
+            breakdownEl.innerHTML = entries
+                .sort((a, b) => b[1].amount - a[1].amount)
+                .map(([type, v]) => {
+                    const cfg = getDocConfig(type);
+                    return `
+                        <div class="flex items-center justify-between text-sm border border-white/10 rounded-lg px-3 py-2">
+                            <span class="font-semibold">${escapeHtml(cfg.label)}</span>
+                            <span class="text-white/80">${v.count} docs | ${money(v.amount)}</span>
+                        </div>
+                    `;
+                })
+                .join("");
+
+            renderTypeAnalyticsCards();
+            updateCharts(rows, entries);
+        }
+
+        function renderTypeAnalyticsCards() {
+            const wrap = document.getElementById("type-analytics-cards");
+            if (!wrap) return;
+            const cards = DOC_CONFIG.map((cfg) => {
+                const rows = analyticsDocs.filter((d) => d.doc_type === cfg.type);
+                const count = rows.length;
+                const total = rows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
+                const paid = rows.filter((r) => String(r?.meta?.status || "").toLowerCase() === "paid").reduce((s, r) => s + Number(r.total_amount || 0), 0);
+                const pending = Math.max(0, total - paid);
+                const activeClass = currentDocFilter === cfg.type ? "border-blue-300 bg-blue-500/20" : "border-white/15 bg-white/0";
+                return `
+                    <button onclick="selectDocType('${cfg.type}')" class="text-left border ${activeClass} rounded-xl p-3 hover:bg-white/10">
+                        <p class="text-sm font-black">${escapeHtml(cfg.label)}</p>
+                        <p class="text-xs text-white/70 mt-1">${count} docs</p>
+                        <p class="text-xs text-white/80 mt-1">Total: ${money(total)}</p>
+                        <p class="text-xs text-emerald-200 mt-1">Paid: ${money(paid)}</p>
+                        <p class="text-xs text-rose-200 mt-1">Pending: ${money(pending)}</p>
+                    </button>
+                `;
+            });
+            wrap.innerHTML = cards.join("");
+        }
+
+        function parseDateFlexible(dateText) {
+            if (!dateText || typeof dateText !== "string") return null;
+            const txt = dateText.trim();
+            if (!txt) return null;
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(txt)) {
+                const dt = new Date(txt);
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            }
+            if (/^\d{2}-\d{2}-\d{4}$/.test(txt)) {
+                const [dd, mm, yyyy] = txt.split("-");
+                const dt = new Date(`${yyyy}-${mm}-${dd}`);
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            }
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(txt)) {
+                const [dd, mm, yyyy] = txt.split("/");
+                const dt = new Date(`${yyyy}-${mm}-${dd}`);
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            }
+
+            const fallback = new Date(txt);
+            return Number.isNaN(fallback.getTime()) ? null : fallback;
+        }
+
+        function dateToMonthLabel(dateText) {
+            const dt = parseDateFlexible(dateText);
+            if (!dt) return null;
+            return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        function chartTextColor() {
+            return "rgba(255,255,255,0.8)";
+        }
+
+        function buildCommonChartOptions() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: chartTextColor(), font: { size: 11, weight: "bold" } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: chartTextColor(), font: { size: 10 } },
+                        grid: { color: "rgba(255,255,255,0.1)" }
+                    },
+                    y: {
+                        ticks: { color: chartTextColor(), font: { size: 10 } },
+                        grid: { color: "rgba(255,255,255,0.1)" }
+                    }
+                }
+            };
+        }
+
+        function initCharts() {
+            const common = buildCommonChartOptions();
+            const trendCtx = document.getElementById("trend-chart");
+            const typeCtx = document.getElementById("type-chart");
+            const statusCtx = document.getElementById("status-chart");
+            const topDocsCtx = document.getElementById("top-docs-chart");
+            if (!trendCtx || !typeCtx || !statusCtx || !topDocsCtx) return;
+
+            trendChart = new Chart(trendCtx, {
+                type: "line",
+                data: { labels: [], datasets: [{ label: "Amount", data: [], borderColor: "#60A5FA", backgroundColor: "rgba(96,165,250,0.25)", fill: true, tension: 0.35 }] },
+                options: common
+            });
+
+            typeChart = new Chart(typeCtx, {
+                type: "bar",
+                data: { labels: [], datasets: [{ label: "Amount", data: [], backgroundColor: ["#60A5FA", "#34D399", "#FBBF24", "#F87171", "#A78BFA", "#22D3EE", "#FB7185", "#4ADE80", "#F59E0B"] }] },
+                options: common
+            });
+
+            statusChart = new Chart(statusCtx, {
+                type: "doughnut",
+                data: { labels: ["Paid", "Pending"], datasets: [{ data: [0, 0], backgroundColor: ["#10B981", "#EF4444"] }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: chartTextColor(), font: { size: 11, weight: "bold" } } }
+                    }
+                }
+            });
+
+            topDocsChart = new Chart(topDocsCtx, {
+                type: "bar",
+                data: { labels: [], datasets: [{ label: "Amount", data: [], backgroundColor: "#93C5FD" }] },
+                options: common
+            });
+        }
+
+        function updateCharts(rows, typeEntries) {
+            if (!trendChart || !typeChart || !statusChart || !topDocsChart) return;
+
+            const monthMap = {};
+            rows.forEach((r) => {
+                const k = dateToMonthLabel(r.date);
+                if (!k) return;
+                monthMap[k] = (monthMap[k] || 0) + Number(r.total_amount || 0);
+            });
+            const monthKeys = Object.keys(monthMap).sort();
+            trendChart.data.labels = monthKeys;
+            trendChart.data.datasets[0].data = monthKeys.map((k) => Number(monthMap[k].toFixed(2)));
+            trendChart.update();
+
+            typeChart.data.labels = typeEntries.map(([t]) => getDocConfig(t).label);
+            typeChart.data.datasets[0].data = typeEntries.map(([, v]) => Number(v.amount.toFixed(2)));
+            typeChart.update();
+
+            const paidAmt = rows
+                .filter((r) => String(r?.meta?.status || "").toLowerCase() === "paid")
+                .reduce((s, r) => s + Number(r.total_amount || 0), 0);
+            const totalAmt = rows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
+            const pendingAmt = Math.max(0, totalAmt - paidAmt);
+            statusChart.data.datasets[0].data = [50, 50];
+            statusChart.data.datasets[0].backgroundColor = ["#10B981", "#EF4444"];
+            statusChart.update();
+
+            const sorted = [...rows].sort((a, b) => Number(b.total_amount || 0) - Number(a.total_amount || 0)).slice(0, 8);
+            topDocsChart.data.labels = sorted.map((r) => r.number || `${getDocConfig(r.doc_type).label}-${r.id}`);
+            topDocsChart.data.datasets[0].data = sorted.map((r) => Number(r.total_amount || 0));
+            topDocsChart.update();
+        }
+
+        async function initSessionSidebar() {
+            try {
+                const res = await fetch("/me");
+                if (!res.ok) return;
+                const data = await res.json();
+                const user = data?.user || {};
+                const name = user.name || "User";
+                const role = (user.role || "user").toString().toLowerCase();
+                document.getElementById("sidebar-user").innerText = name;
+                document.getElementById("sidebar-role").innerText = role === "admin" ? "Admin" : "User";
+            } catch (_) {}
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const usersSection = document.getElementById("users-section");
+            const docsSection = document.getElementById("docs-section");
+            const analyticsSection = document.getElementById("analytics-section");
+
+            if (ADMIN_VIEW === "docs") {
+                if (usersSection) usersSection.classList.add("hidden");
+            } else {
+                if (docsSection) docsSection.classList.add("hidden");
+                if (analyticsSection) analyticsSection.classList.add("hidden");
+            }
+
+            if (ADMIN_VIEW === "docs") {
+                initCharts();
+                initDocFilter();
+                await loadDocuments();
+                const params = new URLSearchParams(window.location.search || "");
+                const t = (params.get("type") || "").trim();
+                if (t) {
+                    const filter = document.getElementById("doc-filter");
+                    if (filter) {
+                        filter.value = t;
+                        renderDocsTable();
+                    }
+                }
+            } else {
+                await loadUsers();
+            }
+            await initSessionSidebar();
+        });
+    </script>
+</body>
+</html>
