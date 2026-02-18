@@ -42,6 +42,7 @@ class User(db.Model):
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
     email = db.Column(db.String(100))
@@ -53,6 +54,7 @@ class Customer(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     name = db.Column(db.String(100), nullable=False)
     prod_type = db.Column(db.String(20), default="Product")
     price = db.Column(db.Float, default=0.0)
@@ -62,6 +64,7 @@ class Product(db.Model):
 
 class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     invoice_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     due_date = db.Column(db.String(20))
@@ -79,6 +82,7 @@ class InvoiceMeta(db.Model):
 
 class DocRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     doc_type = db.Column(db.String(40), nullable=False, index=True)
     doc_number = db.Column(db.String(80), nullable=False, index=True)
     date = db.Column(db.String(20))
@@ -109,6 +113,7 @@ class InvoiceItem(db.Model):
 
 class Quotation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     quotation_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     valid_until = db.Column(db.String(20))
@@ -127,6 +132,7 @@ class QuotationItem(db.Model):
 
 class ProFormaInvoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     pfi_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
@@ -144,6 +150,7 @@ class ProFormaItem(db.Model):
 
 class Challan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     challan_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
@@ -161,6 +168,7 @@ class ChallanItem(db.Model):
 
 class CreditNote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     note_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
@@ -178,6 +186,7 @@ class CreditNoteItem(db.Model):
 
 class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     purchase_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     vendor_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
@@ -195,6 +204,7 @@ class PurchaseItem(db.Model):
 
 class PurchaseOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     po_number = db.Column(db.String(50), unique=True)
     date = db.Column(db.String(20))
     vendor_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
@@ -212,6 +222,7 @@ class POItem(db.Model):
 
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     amount = db.Column(db.Float, nullable=False)
     expense_date = db.Column(db.String(20))
     category = db.Column(db.String(50))
@@ -221,6 +232,7 @@ class Expense(db.Model):
 
 class IndirectIncome(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     amount = db.Column(db.Float, nullable=False)
     income_date = db.Column(db.String(20))
     category = db.Column(db.String(50))
@@ -246,6 +258,13 @@ def current_session_user():
     if not uid:
         return None
     return User.query.get(uid)
+
+
+def require_user_id():
+    uid = session.get("user_id")
+    if not uid:
+        return None, (jsonify({"error": "Unauthorized"}), 401)
+    return uid, None
 
 
 def admin_api_required(fn):
@@ -571,6 +590,9 @@ def doc_to_dict(doc, num_field, party_field, item_rel):
 
 
 def create_doc(model, item_model, num_field, party_field, prefix):
+    uid, err = require_user_id()
+    if err:
+        return err
     data = payload()
     miss = required(data, [party_field])
     if miss:
@@ -580,16 +602,32 @@ def create_doc(model, item_model, num_field, party_field, prefix):
         return jsonify({"error": "items must be a list"}), 400
     number = data.get(num_field) or f"{prefix}-{model.query.count() + 1}"
     exists = model.query.filter_by(**{num_field: number}).first()
+    if exists and exists.owner_id != uid:
+        return jsonify({"error": "Document number already exists"}), 409
     if exists:
-        return jsonify({"id": exists.id, "number": number, "message": "Already exists"}), 200
+        deny = require_admin_for_bill_mutation()
+        if deny:
+            return deny
+        row = exists
+        item_model.query.filter_by(**{list(item_model.__table__.columns.keys())[1]: row.id}).delete()
+    else:
+        row = model(**{num_field: number, "owner_id": uid})
+        db.session.add(row)
+        db.session.flush()
+
+    party_id = data.get(party_field)
+    party = Customer.query.filter_by(id=party_id, owner_id=uid).first()
+    if not party:
+        return jsonify({"error": "Invalid party for this account"}), 400
+
     total = float(data.get("total_amount", line_total(items)) or 0)
-    row = model(**{num_field: number, "date": data.get("date"), party_field: data.get(party_field), "total_amount": total})
+    row.date = data.get("date")
+    setattr(row, party_field, party.id)
+    row.total_amount = total
     if "due_date" in model.__table__.columns:
         row.due_date = data.get("due_date")
     if "valid_until" in model.__table__.columns:
         row.valid_until = data.get("valid_until")
-    db.session.add(row)
-    db.session.flush()
     fk = list(item_model.__table__.columns.keys())[1]
     for i in items:
         db.session.add(
@@ -603,11 +641,14 @@ def create_doc(model, item_model, num_field, party_field, prefix):
             )
         )
     db.session.commit()
-    return jsonify({"id": row.id, "number": number, "message": "Saved"}), 201
+    return jsonify({"id": row.id, "number": number, "message": "Saved"}), (200 if exists else 201)
 
 
 def doc_detail(model, num_field, party_field, item_rel, rid):
-    row = model.query.get_or_404(rid)
+    uid, err = require_user_id()
+    if err:
+        return err
+    row = model.query.filter_by(id=rid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify(doc_to_dict(row, num_field, party_field, item_rel))
     deny = require_admin_for_bill_mutation()
@@ -867,11 +908,14 @@ def admin_user_status(uid):
 
 @app.route("/api/dashboard/summary", methods=["GET"])
 def summary():
-    sales = db.session.query(func.sum(Invoice.total_amount)).scalar() or 0
-    returns = db.session.query(func.sum(CreditNote.total_amount)).scalar() or 0
-    purchases = db.session.query(func.sum(Purchase.total_amount)).scalar() or 0
-    expenses = db.session.query(func.sum(Expense.amount)).scalar() or 0
-    inc = db.session.query(func.sum(IndirectIncome.amount)).scalar() or 0
+    uid, err = require_user_id()
+    if err:
+        return err
+    sales = db.session.query(func.sum(Invoice.total_amount)).filter(Invoice.owner_id == uid).scalar() or 0
+    returns = db.session.query(func.sum(CreditNote.total_amount)).filter(CreditNote.owner_id == uid).scalar() or 0
+    purchases = db.session.query(func.sum(Purchase.total_amount)).filter(Purchase.owner_id == uid).scalar() or 0
+    expenses = db.session.query(func.sum(Expense.amount)).filter(Expense.owner_id == uid).scalar() or 0
+    inc = db.session.query(func.sum(IndirectIncome.amount)).filter(IndirectIncome.owner_id == uid).scalar() or 0
     net_sales = sales - returns
     profit = (net_sales + inc) - (purchases + expenses)
     return jsonify(
@@ -884,9 +928,9 @@ def summary():
             "indirect_income": inc,
             "net_profit": profit,
             "stats": {
-                "customers": Customer.query.filter_by(party_type="customer").count(),
-                "vendors": Customer.query.filter_by(party_type="vendor").count(),
-                "products": Product.query.count(),
+                "customers": Customer.query.filter_by(party_type="customer", owner_id=uid).count(),
+                "vendors": Customer.query.filter_by(party_type="vendor", owner_id=uid).count(),
+                "products": Product.query.filter_by(owner_id=uid).count(),
             },
         }
     )
@@ -894,9 +938,12 @@ def summary():
 
 @app.route("/api/customers", methods=["GET", "POST"])
 def customers():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
         ptype = request.args.get("type")
-        q = Customer.query.filter_by(party_type=ptype) if ptype in ("customer", "vendor") else Customer.query
+        q = Customer.query.filter_by(owner_id=uid, party_type=ptype) if ptype in ("customer", "vendor") else Customer.query.filter_by(owner_id=uid)
         return jsonify(
             [
                 {
@@ -917,6 +964,7 @@ def customers():
     if miss:
         return miss
     c = Customer(
+        owner_id=uid,
         name=data["name"],
         phone=data.get("phone"),
         email=data.get("email"),
@@ -932,7 +980,10 @@ def customers():
 
 @app.route("/api/customers/<int:cid>", methods=["GET", "PUT", "DELETE"])
 def customer_detail(cid):
-    c = Customer.query.get_or_404(cid)
+    uid, err = require_user_id()
+    if err:
+        return err
+    c = Customer.query.filter_by(id=cid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify(
             {
@@ -960,6 +1011,9 @@ def customer_detail(cid):
 
 @app.route("/api/products", methods=["GET", "POST"])
 def products():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
         return jsonify(
             [
@@ -971,7 +1025,7 @@ def products():
                     "tax_rate": p.tax_rate,
                     "unit": p.unit,
                 }
-                for p in Product.query.order_by(Product.id.desc()).all()
+                for p in Product.query.filter_by(owner_id=uid).order_by(Product.id.desc()).all()
             ]
         )
     data = payload()
@@ -979,6 +1033,7 @@ def products():
     if miss:
         return miss
     p = Product(
+        owner_id=uid,
         name=data["name"],
         prod_type=data.get("prod_type", "Product"),
         price=float(data.get("price", 0) or 0),
@@ -992,7 +1047,10 @@ def products():
 
 @app.route("/api/products/<int:pid>", methods=["GET", "PUT", "DELETE"])
 def product_detail(pid):
-    p = Product.query.get_or_404(pid)
+    uid, err = require_user_id()
+    if err:
+        return err
+    p = Product.query.filter_by(id=pid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify({"id": p.id, "name": p.name, "prod_type": p.prod_type, "price": p.price, "tax_rate": p.tax_rate, "unit": p.unit})
     if request.method == "PUT":
@@ -1012,8 +1070,11 @@ def product_detail(pid):
 
 @app.route("/api/invoices", methods=["GET", "POST"])
 def invoices():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "invoice_number", "customer_id", "items") for i in Invoice.query.order_by(Invoice.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "invoice_number", "customer_id", "items") for i in Invoice.query.filter_by(owner_id=uid).order_by(Invoice.id.desc()).all()])
     data = payload()
     miss = required(data, ["customer_id"])
     if miss:
@@ -1025,8 +1086,10 @@ def invoices():
     number = data.get("invoice_number") or f"INV-{Invoice.query.count() + 1}"
     inv = Invoice.query.filter_by(invoice_number=number).first()
     created = False
+    if inv and inv.owner_id != uid:
+        return jsonify({"error": "Invoice number already exists"}), 409
     if not inv:
-        inv = Invoice(invoice_number=number)
+        inv = Invoice(invoice_number=number, owner_id=uid)
         db.session.add(inv)
         created = True
     else:
@@ -1034,9 +1097,13 @@ def invoices():
         if deny:
             return deny
 
+    cust_id = data.get("customer_id")
+    customer = Customer.query.filter_by(id=cust_id, owner_id=uid).first() if cust_id else None
+    if cust_id and not customer:
+        return jsonify({"error": "Invalid customer for this account"}), 400
     inv.date = data.get("date")
     inv.due_date = data.get("due_date")
-    inv.customer_id = data.get("customer_id")
+    inv.customer_id = customer.id if customer else None
     inv.total_amount = float(data.get("total_amount", line_total(items)) or 0)
 
     InvoiceItem.query.filter_by(invoice_id=inv.id).delete() if inv.id else None
@@ -1066,8 +1133,11 @@ def invoice_detail(rid):
 
 @app.route("/api/invoices/<int:rid>/pdf", methods=["GET"])
 def invoice_pdf(rid):
-    inv = Invoice.query.get_or_404(rid)
-    party = Customer.query.get(inv.customer_id) if inv.customer_id else None
+    uid, err = require_user_id()
+    if err:
+        return err
+    inv = Invoice.query.filter_by(id=rid, owner_id=uid).first_or_404()
+    party = Customer.query.filter_by(id=inv.customer_id, owner_id=uid).first() if inv.customer_id else None
     items = inv.items or []
     meta = get_invoice_meta(inv.id)
 
@@ -1125,10 +1195,13 @@ DOC_LABEL = {
 
 @app.route("/api/docs/<doc_type>", methods=["GET", "POST"])
 def docs_by_type(doc_type):
+    uid, err = require_user_id()
+    if err:
+        return err
     if doc_type not in DOC_PREFIX:
         return jsonify({"error": "Invalid doc type"}), 400
     if request.method == "GET":
-        rows = DocRecord.query.filter_by(doc_type=doc_type).order_by(DocRecord.id.desc()).all()
+        rows = DocRecord.query.filter_by(doc_type=doc_type, owner_id=uid).order_by(DocRecord.id.desc()).all()
         return jsonify([doc_record_to_dict(r) for r in rows])
 
     data = payload()
@@ -1138,8 +1211,10 @@ def docs_by_type(doc_type):
 
     row = DocRecord.query.filter_by(doc_type=doc_type, doc_number=number).first()
     created = False
+    if row and row.owner_id != uid:
+        return jsonify({"error": "Document number already exists"}), 409
     if not row:
-        row = DocRecord(doc_type=doc_type, doc_number=number)
+        row = DocRecord(doc_type=doc_type, doc_number=number, owner_id=uid)
         db.session.add(row)
         created = True
     else:
@@ -1150,9 +1225,13 @@ def docs_by_type(doc_type):
     items = data.get("items", [])
     if not isinstance(items, list):
         items = []
+    cust_id = data.get("customer_id")
+    customer = Customer.query.filter_by(id=cust_id, owner_id=uid).first() if cust_id else None
+    if cust_id and not customer:
+        return jsonify({"error": "Invalid customer for this account"}), 400
     row.date = data.get("date")
     row.due_date = data.get("due_date")
-    row.customer_id = data.get("customer_id")
+    row.customer_id = customer.id if customer else None
     row.total_amount = float(data.get("total_amount", line_total(items)) or 0)
     row.meta_json = json.dumps(data.get("meta", {}), ensure_ascii=True)
 
@@ -1173,7 +1252,10 @@ def docs_by_type(doc_type):
 
 @app.route("/api/docs/<doc_type>/<int:rid>", methods=["GET", "DELETE"])
 def doc_detail_by_type(doc_type, rid):
-    row = DocRecord.query.filter_by(doc_type=doc_type, id=rid).first_or_404()
+    uid, err = require_user_id()
+    if err:
+        return err
+    row = DocRecord.query.filter_by(doc_type=doc_type, id=rid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify(doc_record_to_dict(row))
     deny = require_admin_for_bill_mutation()
@@ -1186,8 +1268,11 @@ def doc_detail_by_type(doc_type, rid):
 
 @app.route("/api/docs/<doc_type>/<int:rid>/pdf", methods=["GET"])
 def doc_pdf(doc_type, rid):
-    row = DocRecord.query.filter_by(doc_type=doc_type, id=rid).first_or_404()
-    party = Customer.query.get(row.customer_id) if row.customer_id else None
+    uid, err = require_user_id()
+    if err:
+        return err
+    row = DocRecord.query.filter_by(doc_type=doc_type, id=rid, owner_id=uid).first_or_404()
+    party = Customer.query.filter_by(id=row.customer_id, owner_id=uid).first() if row.customer_id else None
     items = row.items or []
     meta = parse_json_text(row.meta_json)
 
@@ -1223,8 +1308,11 @@ def doc_pdf(doc_type, rid):
 
 @app.route("/api/quotations", methods=["GET", "POST"])
 def quotations():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "quotation_number", "customer_id", "items") for i in Quotation.query.order_by(Quotation.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "quotation_number", "customer_id", "items") for i in Quotation.query.filter_by(owner_id=uid).order_by(Quotation.id.desc()).all()])
     return create_doc(Quotation, QuotationItem, "quotation_number", "customer_id", "QT")
 
 
@@ -1235,8 +1323,11 @@ def quotation_detail(rid):
 
 @app.route("/api/proforma-invoices", methods=["GET", "POST"])
 def proforma():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "pfi_number", "customer_id", "items") for i in ProFormaInvoice.query.order_by(ProFormaInvoice.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "pfi_number", "customer_id", "items") for i in ProFormaInvoice.query.filter_by(owner_id=uid).order_by(ProFormaInvoice.id.desc()).all()])
     return create_doc(ProFormaInvoice, ProFormaItem, "pfi_number", "customer_id", "PFI")
 
 
@@ -1247,8 +1338,11 @@ def proforma_detail(rid):
 
 @app.route("/api/challans", methods=["GET", "POST"])
 def challans():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "challan_number", "customer_id", "items") for i in Challan.query.order_by(Challan.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "challan_number", "customer_id", "items") for i in Challan.query.filter_by(owner_id=uid).order_by(Challan.id.desc()).all()])
     return create_doc(Challan, ChallanItem, "challan_number", "customer_id", "DC")
 
 
@@ -1259,8 +1353,11 @@ def challan_detail(rid):
 
 @app.route("/api/credit-notes", methods=["GET", "POST"])
 def credit_notes():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "note_number", "customer_id", "items") for i in CreditNote.query.order_by(CreditNote.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "note_number", "customer_id", "items") for i in CreditNote.query.filter_by(owner_id=uid).order_by(CreditNote.id.desc()).all()])
     return create_doc(CreditNote, CreditNoteItem, "note_number", "customer_id", "CN")
 
 
@@ -1271,8 +1368,11 @@ def credit_note_detail(rid):
 
 @app.route("/api/purchases", methods=["GET", "POST"])
 def purchases():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "purchase_number", "vendor_id", "items") for i in Purchase.query.order_by(Purchase.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "purchase_number", "vendor_id", "items") for i in Purchase.query.filter_by(owner_id=uid).order_by(Purchase.id.desc()).all()])
     return create_doc(Purchase, PurchaseItem, "purchase_number", "vendor_id", "PUR")
 
 
@@ -1283,8 +1383,11 @@ def purchase_detail(rid):
 
 @app.route("/api/purchase-orders", methods=["GET", "POST"])
 def purchase_orders():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
-        return jsonify([doc_to_dict(i, "po_number", "vendor_id", "items") for i in PurchaseOrder.query.order_by(PurchaseOrder.id.desc()).all()])
+        return jsonify([doc_to_dict(i, "po_number", "vendor_id", "items") for i in PurchaseOrder.query.filter_by(owner_id=uid).order_by(PurchaseOrder.id.desc()).all()])
     return create_doc(PurchaseOrder, POItem, "po_number", "vendor_id", "PO")
 
 
@@ -1295,6 +1398,9 @@ def purchase_order_detail(rid):
 
 @app.route("/api/expenses", methods=["GET", "POST"])
 def expenses():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
         return jsonify(
             [
@@ -1306,7 +1412,7 @@ def expenses():
                     "description": e.description,
                     "is_paid": e.is_paid,
                 }
-                for e in Expense.query.order_by(Expense.id.desc()).all()
+                for e in Expense.query.filter_by(owner_id=uid).order_by(Expense.id.desc()).all()
             ]
         )
     data = payload()
@@ -1314,6 +1420,7 @@ def expenses():
     if miss:
         return miss
     e = Expense(
+        owner_id=uid,
         amount=float(data["amount"]),
         expense_date=data["expense_date"],
         category=data["category"],
@@ -1327,7 +1434,10 @@ def expenses():
 
 @app.route("/api/expenses/<int:eid>", methods=["GET", "DELETE"])
 def expense_detail(eid):
-    e = Expense.query.get_or_404(eid)
+    uid, err = require_user_id()
+    if err:
+        return err
+    e = Expense.query.filter_by(id=eid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify({"id": e.id, "amount": e.amount, "expense_date": e.expense_date, "category": e.category, "description": e.description, "is_paid": e.is_paid})
     db.session.delete(e)
@@ -1337,6 +1447,9 @@ def expense_detail(eid):
 
 @app.route("/api/indirect-income", methods=["GET", "POST"])
 def indirect_income():
+    uid, err = require_user_id()
+    if err:
+        return err
     if request.method == "GET":
         return jsonify(
             [
@@ -1348,7 +1461,7 @@ def indirect_income():
                     "description": i.description,
                     "is_received": i.is_received,
                 }
-                for i in IndirectIncome.query.order_by(IndirectIncome.id.desc()).all()
+                for i in IndirectIncome.query.filter_by(owner_id=uid).order_by(IndirectIncome.id.desc()).all()
             ]
         )
     data = payload()
@@ -1356,6 +1469,7 @@ def indirect_income():
     if miss:
         return miss
     i = IndirectIncome(
+        owner_id=uid,
         amount=float(data["amount"]),
         income_date=data["income_date"],
         category=data["category"],
@@ -1369,7 +1483,10 @@ def indirect_income():
 
 @app.route("/api/indirect-income/<int:iid>", methods=["GET", "DELETE"])
 def indirect_income_detail(iid):
-    i = IndirectIncome.query.get_or_404(iid)
+    uid, err = require_user_id()
+    if err:
+        return err
+    i = IndirectIncome.query.filter_by(id=iid, owner_id=uid).first_or_404()
     if request.method == "GET":
         return jsonify({"id": i.id, "amount": i.amount, "income_date": i.income_date, "category": i.category, "description": i.description, "is_received": i.is_received})
     db.session.delete(i)
@@ -1393,6 +1510,25 @@ with app.app_context():
     if "is_active" not in cols:
         db.session.execute(text("ALTER TABLE user ADD COLUMN is_active BOOLEAN DEFAULT 1"))
         db.session.commit()
+    owner_tables = [
+        "customer",
+        "product",
+        "invoice",
+        "doc_record",
+        "quotation",
+        "pro_forma_invoice",
+        "challan",
+        "credit_note",
+        "purchase",
+        "purchase_order",
+        "expense",
+        "indirect_income",
+    ]
+    for table in owner_tables:
+        tcols = {row[1] for row in db.session.execute(text(f"PRAGMA table_info({table})")).fetchall()}
+        if "owner_id" not in tcols:
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN owner_id INTEGER"))
+            db.session.commit()
     fixed_admin_email = app.config["FIXED_ADMIN_EMAIL"]
     fixed_admin_password = app.config["FIXED_ADMIN_PASSWORD"]
     fixed_admin_name = app.config["FIXED_ADMIN_NAME"]
@@ -1411,6 +1547,9 @@ with app.app_context():
         fixed_admin.password_hash = generate_password_hash(fixed_admin_password)
         fixed_admin.role = "admin"
         fixed_admin.is_active = True
+    db.session.commit()
+    for table in owner_tables:
+        db.session.execute(text(f"UPDATE {table} SET owner_id = :uid WHERE owner_id IS NULL"), {"uid": fixed_admin.id})
     db.session.commit()
 
 
