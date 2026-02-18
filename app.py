@@ -637,6 +637,38 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+@app.route("/bills")
+@app.route("/bills.html")
+def bills_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("bills.html")
+
+
+@app.route("/products")
+@app.route("/products.html")
+def products_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("products.html")
+
+
+@app.route("/parties")
+@app.route("/parties.html")
+def parties_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("parties.html")
+
+
+@app.route("/more")
+@app.route("/more.html")
+def more_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("more.html")
+
+
 @app.route("/admin")
 def admin_panel():
     u = current_session_user()
